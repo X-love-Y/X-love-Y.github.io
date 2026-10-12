@@ -10,16 +10,22 @@
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
-<meta name="description" content="first test
-。">
+<meta name="description" content="# 基于 UE5 与 GAS 的《无畏契约》核心玩法复刻——架构设计与技术实践
+
+## 一、项目概述
+
+本项目基于 Unreal Engine 5，使用 C++、Blueprint 和 Gameplay Ability System（GAS），参考《无畏契约》（VALORANT）的核心玩法，实现一套支持多人联机的 FPS 游戏框架。">
 <meta property="og:title" content="XY测试">
-<meta property="og:description" content="first test
-。">
+<meta property="og:description" content="# 基于 UE5 与 GAS 的《无畏契约》核心玩法复刻——架构设计与技术实践
+
+## 一、项目概述
+
+本项目基于 Unreal Engine 5，使用 C++、Blueprint 和 Gameplay Ability System（GAS），参考《无畏契约》（VALORANT）的核心玩法，实现一套支持多人联机的 FPS 游戏框架。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://X-love-Y.github.io/post/XY-ce-shi.html">
 <meta property="og:image" content="https://avatars.githubusercontent.com/u/187077804?v=4&size=64">
 <title>XY测试</title>
-
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
 
 
 </head>
@@ -43,7 +49,17 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
     body {padding: 8px;}
     .postTitle{font-size:24px;}
 }
-
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
 </style>
 
 
@@ -75,7 +91,339 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><p>first test</p></div>
+<div class="markdown-body" id="postBody"><h1>基于 UE5 与 GAS 的《无畏契约》核心玩法复刻——架构设计与技术实践</h1>
+<h2>一、项目概述</h2>
+<p>本项目基于 Unreal Engine 5，使用 C++、Blueprint 和 Gameplay Ability System（GAS），参考《无畏契约》（VALORANT）的核心玩法，实现一套支持多人联机的 FPS 游戏框架。</p>
+<p>项目开发的重点不仅是还原角色移动、武器射击、技能释放等游戏表现，更重要的是分析成熟 FPS 游戏的系统设计，探索如何通过合理的架构划分，实现模块间的低耦合、高复用以及多人网络环境下的状态一致性。</p>
+<p>在开发过程中，我主要围绕以下问题进行思考：</p>
+<ul>
+<li><strong>角色架构：</strong> 哪些功能应该放在 Character 基类，哪些功能应该交由组件或独立系统管理？</li>
+<li><strong>技能系统：</strong> GAS 的 AbilitySystemComponent 应该挂载在 Character 还是 PlayerState？</li>
+<li><strong>输入架构：</strong> 如何将玩家按键与技能逻辑解耦，避免技能增加后不断修改角色代码？</li>
+<li><strong>网络同步：</strong> 如何区分服务器权威逻辑、客户端本地表现与需要复制的游戏状态？</li>
+<li><strong>系统扩展：</strong> 如何使角色、武器、技能能够独立迭代，减少新增内容时对原有系统的修改？</li>
+</ul>
+<p>这些问题构成了整个项目架构设计的核心。</p>
+<hr>
+<h2>二、角色基类设计：公共行为与具体玩法分离</h2>
+<h3>2.1 为什么要设计角色基类？</h3>
+<p>FPS 游戏中的不同角色通常共享大量基础行为，例如移动、跳跃、视角控制、蹲伏以及基础交互。</p>
+<p>如果为每个角色分别实现这些逻辑，不仅会产生重复代码，还会增加后期维护成本。</p>
+<p>因此，我选择将角色的通用行为封装在 C++ Character 基类中。</p>
+<p>基础角色类主要负责：</p>
+<ul>
+<li>基础移动与视角控制</li>
+<li>跳跃、蹲伏等通用操作</li>
+<li>Enhanced Input 输入初始化</li>
+<li>通用组件管理</li>
+<li>基础网络复制与角色生命周期处理</li>
+</ul>
+<p>而角色专属的技能、属性、特效等内容则尽量交由 GAS、组件及数据资产管理。</p>
+<h3>2.2 为什么不把所有功能都写在 Character 中？</h3>
+<p>最初实现游戏功能时，直接在 Character 中编写技能和武器逻辑确实比较方便。</p>
+<p>但随着功能增加，Character 很容易承担过多职责。</p>
+<p>例如，角色类既需要处理移动，又需要判断武器能否开火、执行换弹、激活技能、管理冷却，还需要同步这些状态。</p>
+<p>这会使 Character 逐渐演变为难以维护的庞大类。</p>
+<p>因此，我将系统划分为三个层次：</p>
+<p><strong>Character：</strong> 负责角色本身的通用行为，以及不同系统之间的必要协调。</p>
+<p><strong>ActorComponent：</strong> 负责具有独立职责的功能模块，例如武器管理、交互和装备管理。</p>
+<p><strong>Gameplay Ability：</strong> 负责具有激活条件、执行过程、消耗、冷却和结束状态的行为，例如角色技能以及适合能力化管理的武器行为。</p>
+<p>这样的设计可以避免功能全部集中在角色类中，也方便后续新增角色和技能。</p>
+<h3>2.3 设计思考</h3>
+<p>我认为，角色基类的价值不在于封装尽可能多的功能，而在于提供稳定、可复用的公共能力。</p>
+<p>对于需要独立维护、可能被多个角色复用的逻辑，应优先考虑组件化或数据驱动的方式，而不是持续扩充角色基类。</p>
+<hr>
+<h2>三、GAS 架构设计：为什么将 ASC 放在 PlayerState？</h2>
+<p>这是项目中比较重要的一项架构选择。</p>
+<p>GAS 的 AbilitySystemComponent（ASC）既可以挂载在 Character，也可以挂载在 PlayerState。</p>
+<p>两种方式都可以实现技能系统，但在生命周期和多人游戏场景下有不同的适用性。</p>
+<h3>3.1 Character 与 PlayerState 的生命周期区别</h3>
+<p>Character 代表玩家当前控制的游戏角色。</p>
+<p>当角色死亡、重生或被替换时，原有 Character 可能被销毁，并创建新的 Character。</p>
+<p>PlayerState 则主要用于保存玩家在当前对局中的相关状态，在常规死亡与重生过程中通常可以继续存在。</p>
+<p>因此，如果将 ASC 挂载在 Character 上，角色被销毁时，其 ASC 也可能随之销毁。</p>
+<p>如果将 ASC 挂载在 PlayerState 上，则可以让能力系统的生命周期与玩家状态绑定，而不是与单个角色实例绑定。</p>
+<p>这对于需要保留玩家技能信息、经济状态或其他跨角色重生状态的游戏更有意义。</p>
+<p>需要注意的是，PlayerState 并不意味着所有状态都应该永久保留。生命值、临时效果等是否在重生时重置，仍然需要由游戏规则决定。</p>
+<h3>3.2 我的架构选择</h3>
+<p>在本项目中，我采用：</p>
+<ul>
+<li><strong>OwnerActor：PlayerState</strong></li>
+<li><strong>AvatarActor：Character</strong></li>
+<li><strong>ASC 所属位置：PlayerState</strong></li>
+</ul>
+<p>PlayerState 与 Character 均实现 <code class="notranslate">IAbilitySystemInterface</code>，通过接口获取对应的 ASC。</p>
+<p>在这个结构中，PlayerState 是能力系统的逻辑拥有者，Character 则是技能在游戏世界中的实际执行实体。</p>
+<p>例如，角色释放技能时，技能系统需要访问角色位置、朝向、动画和武器等信息，这些内容仍然由 AvatarActor 提供。</p>
+<h3>3.3 ASC 初始化时机</h3>
+<p>由于 PlayerState 和 Character 的创建、复制及绑定过程存在先后顺序，ASC 不能简单地只在 BeginPlay 中初始化。</p>
+<p>我采用的初始化思路是：</p>
+<p><strong>服务器端：</strong></p>
+<p>在 <code class="notranslate">PossessedBy()</code> 中完成 PlayerState 与 Character 的关联，并初始化 AbilityActorInfo。</p>
+<p><strong>客户端：</strong></p>
+<p>在 <code class="notranslate">OnRep_PlayerState()</code> 中，等待 PlayerState 正确复制到客户端后，再初始化 AbilityActorInfo。</p>
+<p>核心逻辑如下：</p>
+<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-k">void</span> <span class="pl-en">AMyCharacter::InitAbilityActorInfo</span>()
+{
+    AMyPlayerState* <span class="pl-c1">PS</span> = GetPlayerState&lt;AMyPlayerState&gt;();
+    <span class="pl-k">if</span> (!<span class="pl-c1">PS</span>) <span class="pl-k">return</span>;
+
+    UAbilitySystemComponent* <span class="pl-c1">ASC</span> =
+        <span class="pl-c1">PS</span>-&gt;<span class="pl-c1">GetAbilitySystemComponent</span>();
+
+    <span class="pl-k">if</span> (!<span class="pl-c1">ASC</span>) <span class="pl-k">return</span>;
+
+    <span class="pl-c1">ASC</span>-&gt;<span class="pl-c1">InitAbilityActorInfo</span>(<span class="pl-c1">PS</span>, <span class="pl-c1">this</span>);
+}</pre></div>
+<p>服务器与客户端分别在合适的生命周期回调中调用统一的初始化函数。</p>
+<p>这里需要区分 ASC 初始化与技能授予。</p>
+<p><code class="notranslate">InitAbilityActorInfo()</code> 用于建立 Owner 和 Avatar 的关联；初始技能的授予则应由服务器权威执行，避免客户端重复授予技能。</p>
+<h3>3.4 开发中遇到的问题</h3>
+<p>在多人联机测试中，我曾遇到过客户端与服务器获取的 ASC 状态不一致、Gameplay Event 无法正确触发等问题。</p>
+<p>排查过程中发现，除了需要确保 ASC 引用正确，还需要特别关注 OwnerActor 与 AvatarActor 的区别。</p>
+<p>例如，使用 <code class="notranslate">SendGameplayEventToActor()</code> 时，如果技能中的 <code class="notranslate">Wait Gameplay Event</code> 实际监听的是 Character 对应的 ASC，那么事件应发送给能够正确解析到该 ASC 的 Actor。</p>
+<p>在我的架构中，Character 实现了 AbilitySystemInterface，因此可以通过 Character 获取 PlayerState 上的 ASC。</p>
+<p>最终，我将 ASC 的初始化入口进行统一，避免在不同蓝图或生命周期中重复执行不必要的初始化逻辑，并明确区分 Owner 与 Avatar 的职责。</p>
+<h3>3.5 设计总结</h3>
+<p>ASC 挂载在 PlayerState 并不是 GAS 的唯一正确架构。</p>
+<p>如果项目中的角色与技能系统具有完全一致的生命周期，将 ASC 放在 Character 上也可能更加简单。</p>
+<p>我选择 PlayerState 的主要原因，是希望将玩家长期存在的能力系统与可替换的角色实体分离，使架构能够适应多人游戏中的死亡、重生及角色切换。</p>
+<hr>
+<h2>四、输入系统设计：基于 Input Config 的高度解耦</h2>
+<h3>4.1 为什么不直接在 Character 中绑定每一个技能？</h3>
+<p>传统实现中，可以直接将输入与技能函数绑定。</p>
+<p>例如：</p>
+<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-en">BindAction</span>(SkillQ, Triggered, ActivateSkillQ);
+<span class="pl-en">BindAction</span>(SkillE, Triggered, ActivateSkillE);</pre></div>
+<p>这种方式在技能数量较少时比较直观。</p>
+<p>但对于具有多个英雄、不同技能配置的游戏来说，容易产生以下问题：</p>
+<ol>
+<li>Character 需要知道具体有哪些技能。</li>
+<li>新增技能可能需要修改 Character 代码。</li>
+<li>不同角色的技能配置难以复用。</li>
+<li>输入按键与具体技能之间存在较强耦合。</li>
+</ol>
+<p>因此，我采用 Enhanced Input 与 Input Config 数据配置相结合的设计思路。</p>
+<h3>4.2 输入层与技能层分离</h3>
+<p>我希望输入系统只负责表达玩家的操作意图，而不直接关心某个技能具体执行什么效果。</p>
+<p>整个输入链路可以抽象为：</p>
+<p><code class="notranslate">物理按键 → Input Action → Input Config → Gameplay Tag → AbilitySystemComponent → Gameplay Ability</code></p>
+<p>例如：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>Input Action</th>
+<th>Gameplay Tag</th>
+<th>对应行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IA_Skill_Q</td>
+<td>Input.Skill.Q</td>
+<td>Q 技能</td>
+</tr>
+<tr>
+<td>IA_Skill_E</td>
+<td>Input.Skill.E</td>
+<td>E 技能</td>
+</tr>
+<tr>
+<td>IA_Skill_C</td>
+<td>Input.Skill.C</td>
+<td>C 技能</td>
+</tr>
+<tr>
+<td>IA_Skill_X</td>
+<td>Input.Skill.X</td>
+<td>终极技能</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>Input Config 使用 Data Asset 保存 Input Action 与 Gameplay Tag 的映射关系。</p>
+<p>Character 不再需要针对每一个技能编写独立的激活逻辑，而是将输入对应的 Gameplay Tag 传递给能力系统，由能力系统查找和激活对应的 Gameplay Ability。</p>
+<h3>4.3 为什么选择 Gameplay Tag？</h3>
+<p>相比直接使用技能类引用或硬编码枚举，Gameplay Tag 更适合描述游戏中的语义信息。</p>
+<p>例如：</p>
+<pre lang="text" class="notranslate"><code class="notranslate">Input.Skill.Q
+Input.Skill.E
+Input.Skill.C
+Input.Skill.X
+
+State.Dead
+State.Stunned
+State.Reloading
+</code></pre>
+<p>Gameplay Tag 不仅可以用于输入映射，还可以用于技能激活限制、角色状态判断和系统之间的通信。</p>
+<p>这样可以减少模块之间对具体类的依赖。</p>
+<p>需要说明的是，GAS 并不会自动完成 Input Tag 到技能激活的全部映射。项目仍然需要自行实现 Tag 与 AbilitySpec 的关联及输入处理逻辑。</p>
+<h3>4.4 设计带来的收益</h3>
+<p><strong>新增技能时：</strong></p>
+<p>可以通过技能授予及配置映射完成接入，不必为每个技能在 Character 中新增独立输入函数。</p>
+<p><strong>切换角色时：</strong></p>
+<p>不同角色可以拥有不同的 Ability 配置，但继续复用相同的输入处理流程。</p>
+<p><strong>修改按键时：</strong></p>
+<p>输入映射层的变化不需要影响 Gameplay Ability 内部的执行逻辑。</p>
+<h3>4.5 我的理解</h3>
+<p>Input Config 的核心价值不只是减少代码量，而是让输入系统与具体业务逻辑之间形成清晰边界。</p>
+<p>输入系统负责“玩家想做什么”，GAS 负责“当前能否执行以及如何执行”。</p>
+<p>这种分层设计使技能系统更容易扩展和维护。</p>
+<hr>
+<h2>五、技能系统设计：利用 GAS 管理行为生命周期</h2>
+<p>在技能实现中，我不仅关注技能最终产生的效果，也关注技能从激活到结束的完整生命周期。</p>
+<p>一个技能通常涉及：</p>
+<ul>
+<li>激活条件检查</li>
+<li>技能执行</li>
+<li>动画或特效播放</li>
+<li>冷却与资源消耗</li>
+<li>技能中断</li>
+<li>技能结束与状态清理</li>
+</ul>
+<p>如果完全使用普通函数或计时器管理，技能数量增加后，容易出现状态相互冲突的问题。</p>
+<p>因此，对于需要管理生命周期的行为，我优先考虑使用 Gameplay Ability。</p>
+<h3>5.1 使用 Gameplay Tag 控制技能互斥</h3>
+<p>例如，角色在执行某些技能时，可能需要阻止其他技能激活。</p>
+<p>GAS 提供了 Ability Tags、Activation Owned Tags 和 Activation Blocked Tags 等机制。</p>
+<p>这里需要特别区分：</p>
+<p><strong>Ability Tags：</strong> 描述技能本身的标签。</p>
+<p><strong>Activation Owned Tags：</strong> 技能激活期间赋予 ASC 的标签。</p>
+<p><strong>Activation Blocked Tags：</strong> 当前 ASC 拥有指定标签时，阻止该技能激活。</p>
+<p>我在开发过程中曾遇到过一个问题：</p>
+<p>明明为技能配置了阻止标签，但两个技能仍然可以同时激活。</p>
+<p>最终发现，问题在于只配置了 Ability Tags，却没有为正在执行的技能设置对应的 Activation Owned Tags。</p>
+<p>这让我进一步理解到：技能自身拥有某个标签，并不代表角色在技能执行期间自动拥有该标签。</p>
+<p>只有明确区分技能标签与 ASC 当前状态标签，才能正确建立技能之间的互斥关系。</p>
+<h3>5.2 为什么技能持续行为不应随意使用普通计时器？</h3>
+<p>例如，实现自动连射时，可以在武器组件中启动循环计时器，不断调用开火函数。</p>
+<p>但当角色需要被其他技能打断，或在死亡、切换武器时停止射击，独立计时器就可能带来额外的状态清理工作。</p>
+<p>因此，对于需要与技能生命周期绑定的持续行为，可以考虑将循环过程放在 Gameplay Ability 中，使用 Ability Task 或受 Ability 管理的计时逻辑实现。</p>
+<p>这样，在技能结束或取消时，可以集中处理持续行为的终止。</p>
+<p>当然，并非所有武器逻辑都必须使用 GAS。</p>
+<p>对于简单且独立的操作，普通组件函数往往更加直接。</p>
+<p>我认为是否使用 GAS，应该取决于该行为是否需要能力系统提供的激活条件、状态约束、预测、取消与生命周期管理，而不是为了统一形式将所有功能都包装成 Ability。</p>
+<hr>
+<h2>六、武器系统设计：数据、行为与表现分离</h2>
+<p>武器系统是 FPS 游戏的重要组成部分。</p>
+<p>在设计时，我希望尽量避免将武器逻辑直接写在 Character 中。</p>
+<p>因此，将武器相关功能划分为不同职责：</p>
+<p><strong>Weapon Actor：</strong></p>
+<p>负责武器实体、武器网格、基础武器状态及相关表现。</p>
+<p><strong>Weapon Component：</strong></p>
+<p>负责角色当前持有武器的管理、武器操作入口以及相关状态通知。</p>
+<p><strong>Weapon Data：</strong></p>
+<p>保存武器基础配置，例如弹匣容量、射击间隔、伤害等参数。</p>
+<p><strong>Gameplay Ability：</strong></p>
+<p>负责需要纳入 GAS 生命周期管理的武器行为。</p>
+<h3>6.1 为什么采用数据驱动？</h3>
+<p>不同武器之间往往存在大量相似逻辑，主要区别是参数。</p>
+<p>例如，步枪、手枪和狙击枪可能拥有不同的弹匣容量、射击间隔及伤害数值，但不应该因此复制多套完全相同的开火逻辑。</p>
+<p>通过数据资产配置武器参数，可以让同一套行为逻辑服务于多种武器。</p>
+<h3>6.2 弹药同步问题</h3>
+<p>多人联机开发中，我遇到过客户端换弹后弹药数量无法正确更新的问题。</p>
+<p>这个问题使我认识到：</p>
+<p><strong>Actor 开启 Replicates，并不代表 Actor 内所有变量都会自动同步。</strong></p>
+<p>对于需要同步的弹药状态，需要明确指定复制属性，并在必要时通过 RepNotify 处理客户端表现更新。</p>
+<p>例如：</p>
+<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-c1">UPROPERTY</span>(ReplicatedUsing = OnRep_CurrentAmmo)
+int32 CurrentAmmo;
+
+<span class="pl-c1">UFUNCTION</span>()
+<span class="pl-k">void</span> <span class="pl-en">OnRep_CurrentAmmo</span>();</pre></div>
+<p>在 <code class="notranslate">OnRep_CurrentAmmo()</code> 中，可以进一步通知 UI 更新弹药显示。</p>
+<p>需要注意，RepNotify 主要用于客户端接收到复制更新后的处理；服务器本地修改变量时，如果需要同步更新 UI 或其他表现，也应主动执行相应通知逻辑。</p>
+<h3>6.3 为什么 UI 不直接每帧查询弹药？</h3>
+<p>一种简单方式是在 UI 中使用绑定函数，每帧读取当前弹药数量。</p>
+<p>但弹药数值通常只会在射击、换弹等事件发生时改变。</p>
+<p>因此，我更倾向于采用事件驱动的方式：</p>
+<p><code class="notranslate">弹药状态变化 → RepNotify / 状态通知 → Event Dispatcher → UI 更新</code></p>
+<p>这种设计减少了不必要的轮询，也使 UI 不必直接依赖武器内部的具体实现。</p>
+<hr>
+<h2>七、多人网络架构：服务器权威与客户端表现分离</h2>
+<p>多人 FPS 开发中，我重点关注的不是简单地让变量能够复制，而是明确每一段逻辑应该在哪个网络端执行。</p>
+<h3>7.1 对 Authority 的理解</h3>
+<p>UE 的 Authority 判断针对的是当前 Actor 实例是否具有权威，而不是简单区分“服务器玩家”和“客户端玩家”。</p>
+<p>在服务器上，服务器拥有其他客户端玩家对应的权威 Actor 实例。</p>
+<p>但这并不意味着客户端本地触发的输入事件，会自动在服务器上的对应 Actor 中再次触发。</p>
+<p>例如，客户端按下交互键：</p>
+<ol>
+<li>输入首先在本地客户端触发。</li>
+<li>客户端通过 Server RPC 发送交互请求。</li>
+<li>服务器验证交互条件。</li>
+<li>服务器执行权威状态修改。</li>
+<li>通过属性复制或 RPC 将结果通知相关客户端。</li>
+</ol>
+<p>这个过程需要明确建立网络通信路径。</p>
+<p>不能只在客户端输入逻辑后面添加 <code class="notranslate">Switch Has Authority</code>，就认为服务器会自动执行对应分支。</p>
+<h3>7.2 为什么需要服务器验证？</h3>
+<p>例如，客户端请求拾取武器。</p>
+<p>如果完全相信客户端的检测结果，客户端就可能提交不合法的拾取目标。</p>
+<p>因此，对于影响游戏规则的交互，服务器应当验证玩家是否满足拾取条件，包括距离、目标有效性以及武器是否仍可拾取等。</p>
+<p>客户端可以进行本地检测，用于显示交互提示，但最终状态修改应由服务器决定。</p>
+<h3>7.3 网络同步并不等于复制所有内容</h3>
+<p>我将网络状态大致分为：</p>
+<p><strong>权威游戏状态：</strong> 例如弹药数量、生命值、武器归属等，需要服务器管理，并根据需要复制给客户端。</p>
+<p><strong>瞬时表现事件：</strong> 例如某些枪口特效、命中特效和音效，可以通过合适的事件或 Gameplay Cue 进行表现同步。</p>
+<p><strong>本地表现状态：</strong> 例如仅本地玩家可见的准星、部分 UI 动画，不一定需要网络复制。</p>
+<p>这种划分有助于避免无意义的网络通信，也使客户端表现与服务器权威逻辑之间的职责更加清晰。</p>
+<hr>
+<h2>八、Gameplay Cue：将技能逻辑与视觉表现解耦</h2>
+<p>GAS 中的 Gameplay Cue 提供了一种将技能状态与视觉、音效表现分离的方式。</p>
+<p>例如，一个技能命中目标后，可能需要产生粒子、声音和命中特效。</p>
+<p>如果这些表现全部直接写在 Gameplay Ability 中，技能逻辑就会与具体资源产生较强耦合。</p>
+<p>因此，我使用 Gameplay Cue 管理部分技能表现。</p>
+<p>Gameplay Ability 负责决定技能何时产生效果，Gameplay Cue 负责处理对应的视觉与声音反馈。</p>
+<h3>8.1 Burst 与持续性 Cue</h3>
+<p>对于瞬时效果，可以使用 Burst 类型的 Gameplay Cue。</p>
+<p>例如：</p>
+<ul>
+<li>枪口火焰</li>
+<li>子弹命中特效</li>
+<li>瞬间爆炸效果</li>
+</ul>
+<p>对于需要在某个状态持续期间存在的效果，则可以考虑持续性 Gameplay Cue。</p>
+<p>例如：</p>
+<ul>
+<li>持续燃烧效果</li>
+<li>技能充能状态</li>
+<li>持续性的角色特效</li>
+</ul>
+<p>实际开发中，我也遇到过 Gameplay Cue 在服务器显示正常，但客户端没有正确显示的问题。</p>
+<p>这类问题需要同时检查 ASC 的拥有关系、事件触发方式、网络执行端以及 Gameplay Cue 参数，而不是仅仅检查特效资源本身。</p>
+<p>通过这些调试，我逐渐理解了 GAS 中逻辑状态与表现同步之间的关系。</p>
+<hr>
+<h2>九、开发过程中的架构反思</h2>
+<h3>9.1 不应该为了使用 GAS 而使用 GAS</h3>
+<p>GAS 提供了成熟的技能生命周期、Gameplay Tag、Gameplay Effect 和网络预测等机制，但也增加了系统复杂度。</p>
+<p>对于普通移动、简单交互等行为，如果没有复杂的状态约束，直接使用 Character 或 ActorComponent 往往更加合适。</p>
+<p>因此，我认为应根据行为特征选择实现方式，而不是将所有游戏功能强行纳入 GAS。</p>
+<h3>9.2 解耦不意味着完全没有依赖</h3>
+<p>模块化开发并不是让每个系统都互不关联。</p>
+<p>例如，技能系统仍然需要知道当前 Avatar，武器系统仍然需要访问角色的必要信息。</p>
+<p>关键在于通过接口、组件和数据配置建立稳定的依赖关系，避免一个模块直接了解其他模块过多的内部细节。</p>
+<h3>9.3 多人游戏架构应该尽早考虑</h3>
+<p>如果先按照单机逻辑完成所有功能，再统一添加网络同步，往往需要重新调整大量代码。</p>
+<p>尤其是武器拾取、技能激活、弹药消耗和角色状态变化等系统，从设计初期就需要明确权威端与客户端的职责。</p>
+<p>因此，我认为多人游戏中的网络架构不应该只是最后增加的功能，而应该是系统设计的基础约束之一。</p>
+<h3>9.4 设计需要服务于项目规模</h3>
+<p>架构越复杂并不代表越优秀。</p>
+<p>对于短周期 Demo，过度抽象可能降低开发效率；但对于需要支持多个角色、武器和技能的 FPS 项目，合理的模块化设计可以减少后续维护成本。</p>
+<p>因此，我更倾向于先明确模块的职责与边界，再根据实际扩展需求逐步抽象，而不是一开始就设计大量暂时用不到的通用系统。</p>
+<hr>
+<h2>十、项目总结</h2>
+<p>通过本次基于 UE5 与 GAS 的《无畏契约》核心玩法复刻，我对 Unreal Engine 的游戏框架、GAS 架构和多人网络机制有了更加系统的理解。</p>
+<p>相比单纯完成角色移动、射击和技能效果，我认为更重要的收获是学会从系统设计角度分析问题。</p>
+<p>例如：</p>
+<ul>
+<li>通过 PlayerState 与 Character 的生命周期差异，确定 ASC 的拥有关系。</li>
+<li>通过 Enhanced Input、Input Config 和 Gameplay Tag，将输入操作与具体技能解耦。</li>
+<li>通过 Character 基类、ActorComponent 和 Gameplay Ability 的职责划分，提高功能复用性。</li>
+<li>通过服务器权威、RPC 和属性复制，处理多人游戏中的状态一致性问题。</li>
+<li>通过 RepNotify、事件分发器和 Gameplay Cue，将游戏状态变化与客户端表现分离。</li>
+</ul>
+<p>这些实践让我认识到，游戏客户端开发不仅是实现具体功能，更需要考虑功能之间如何协作、数据由谁管理、状态如何同步，以及未来需求发生变化时系统是否容易维护。</p>
+<p><strong>项目最大的收获，是从以功能实现为中心的开发方式，逐渐转向以职责划分、生命周期管理、数据流和网络架构为中心的工程化思考。</strong></p>
+<p>后续我计划继续完善技能配置、武器系统和多人同步机制，并进一步研究 GAS 的客户端预测、Gameplay Effect 管理及网络性能优化。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
@@ -100,7 +448,7 @@ if(""!=""){
 </script></div>
 </body>
 <script>
-var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z'};
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
 var utterancesLoad=0;
 
 let themeSettings={
@@ -174,7 +522,70 @@ function iFrameLoading(){
     }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
 
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
 
 </script>
 
