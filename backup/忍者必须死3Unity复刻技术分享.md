@@ -105,3 +105,59 @@ List是动态数组，类似于C++的vector，用来放出现在场景中的路�
         }
 ```
 Section是自定义类，包含路段的起点，终点，路段类型（前面的枚举），显示地面的GameObject，和这个对象上的SpiteRenderer，就是面向对象思想，将路段包装成一个有基础属性的对象。
+先大致讲一下无尽跑酷的实现原理，首先是开局初始化，在最左侧边界（程序规定），相机外预生成一段路段，然后一直生成到最右侧边界，这里是“陆地”和“绳索”的拼接，为了简便，我就让陆地和绳索1：7的排列出现，生成了的路段会先加入Sections显示出来，然后路段整体向左移动，超过一定界限，最左侧即Section[0]就被回收会对象池，右边同理重新生成新的路段，或者从对象池中拿出来用，对象池有大小限制，刚开始填充，满了以后就不再生成，反复从对象池中存取，而路面的向左移动逻辑，就是在UpDate里更新在世界坐标中的x位置，每个路段生成会有一个start和end的逻辑位置，end = start + length(路段长度)，就是这个路段刚生成在世界中的两端，注意在从生成或者说从对象池中拿出，到放回对象池期间，这个start和end是不会变的，（start + end) / 2是中心坐标，就是防止这个路段的位置，然后维护一个Distance，每个路段的（start + end) / 2 - Distance赋值给新的坐标，Distance不断增加，就形成了路面整体左移的效果，现在来看代码。
+```csharp
+        private void Awake()
+        {
+            Speed = speed;
+            // 正常情况下使用 Inspector 中的赛道图；只有素材丢失时才退回旧矩形，避免整条路消失。
+            if (groundRockSprite == null || inkRopeSprite == null)
+            {
+                Debug.LogWarning("赛道 Sprite 引用不完整，临时改用纯色线条。", this);
+                pixel = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1),
+                    new Vector2(0.5f, 0.5f), 1f);
+            }
+            nextX = -16f;
+            while (nextX < 30f)
+                AddSection();
+        }
+```
+nextX就是路段放进显示的场景中最左侧的位置，section.start = nextX，sction.end = nextX + length，这个nextX也是会不断计算变化的，并且是用来判断是否要添加新路段的判断标准，当nextX < 30f了，就超过左边界了，说明路段已经左移动了很多，可以在右端添加新的路段补充了。
+```csharp
+        private void AddSection()
+        {
+            // 第 0 段保留 25 单位安全地面，角色出生时前方有约两秒准备时间。
+            // 此后按八段一组生成：第 8、16……段为地面，其余七段均为绳索。
+            // 七段绳索彼此连续且共享 SurfaceY，角色上下换面不会在内部接缝被误判撞墙；
+            // 地面与绳索都采用 sectionLength，因此常规循环的实际行进长度比例也严格是 1:7。
+            Surface kind = sectionNumber % 8 == 0 ? Surface.Ground : Surface.Rope;
+            float length = sectionNumber == 0 ? 25f : sectionLength;
+            // 取得池中已经创建过 SpriteRenderer 的区段；池空时才实例化一次。
+            Section section = cachedSections.Count > 0 ? cachedSections.Pop() : CreateSection();
+            section.start = nextX;
+            section.end = nextX + length;
+            section.surface = kind;
+            section.view.name = $"{kind}_{sectionNumber:000}";
+            section.view.transform.localRotation = Quaternion.identity;
+            // 地面图片上半部分透明，下半部分是岩块；用偏移让真正的草石顶边恰在角色脚底。
+            float y = kind == Surface.Ground ? surfaceY - groundTopOffset : surfaceY;
+            section.view.transform.position = new Vector3((section.start + section.end) * 0.5f - Distance, y, 0f);
+
+            // 每次借用都重设 Sprite、颜色、排序和缩放。若上一轮是绳索而这一轮是地面，
+            // 不能留下旧外观；逻辑 start/end 也与新图形在同一处更新。
+            SpriteRenderer line = section.renderer;
+            Sprite artwork = kind == Surface.Ground ? groundRockSprite : inkRopeSprite;
+            line.sprite = artwork != null ? artwork : pixel;
+            line.color = artwork != null ? Color.white : new Color(0.055f, 0.065f, 0.09f, 1f);
+            line.sortingOrder = 0;
+            float width = artwork != null ? artwork.bounds.size.x : 1f;
+            float heightScale = artwork != null
+                ? (kind == Surface.Ground ? 1f : ropeVerticalScale)
+                : (kind == Surface.Ground ? 0.22f : 0.055f);
+            section.view.transform.localScale = new Vector3(length / width, heightScale, 1f);
+            section.view.SetActive(true);
+            sections.Add(section);
+            nextX += length;
+            sectionNumber++;
+        }
+```
