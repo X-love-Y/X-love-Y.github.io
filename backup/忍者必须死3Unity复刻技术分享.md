@@ -233,3 +233,56 @@ nextX就是路段放进显示的场景中最左侧的位置，section.start = ne
 ```
 这里有小知识点，在C#中，Stack的放入和取出是push和pop，Queue是Enqueue和Dequeue，只看不取走都是Peek()。
 接下来开始EndlessRunner脚本的讲解，就是我们的玩家，依旧先大致讲解一下代码干了啥，心里有数，代码看着不烧心，这个脚本主要负责控制无尽跑酷中的玩家角色行为，核心是通过状态机管理角色的不同动作。首先在 Awake() 中获取角色的 SpriteRenderer、主相机和战斗组件，并将角色放置到赛道规定的初始位置，同时初始化脚印特效管理对象。随后在 Update() 中每帧更新角色状态，首先判断是否处于移动锁定或游戏结束状态，然后根据赛道的加速比例计算角色的目标横向位置，通过 MoveTowards 让角色逐渐向目标位置移动，并调用 EndlessTrack 的 SurfaceAt() 判断脚下是普通地面还是绳索，同时检测岩壁碰撞。如果角色被岩壁阻挡，就根据岩壁的逻辑位置和赛道当前滚动距离计算角色应该停留的位置，直到被挤出屏幕后判定失败。玩家输入主要通过 Up() 和 Down() 两个函数处理，Up() 根据当前状态决定是跳跃、翻回绳索上方还是重新开始游戏，Down() 则根据当前状态决定是滑铲、空中下翻还是翻到绳索下方。角色跳跃时通过垂直速度和重力计算 Y 坐标，下翻时则通过 Lerp 插值在规定时间内下降到赛道表面，绳索上下翻转则通过修改角色状态和 SpriteRenderer 的 flipY 实现。Enter() 是统一的状态切换入口，负责重置动作计时器，并在进入或退出滑铲时通知赛道开启或关闭加速。最后，UpdateFrame() 根据当前状态和计时器切换不同的精灵图片，RunnerTrails 则负责管理跑步时的脚印特效。整体来说，这段代码就是一个以状态机为核心的角色控制系统，EndlessTrack 负责提供赛道信息，EndlessRunner 根据赛道信息和玩家输入控制角色的移动、动作和动画。
+```csharp
+        [SerializeField, Tooltip("提供脚底高度、路面种类、滚动速度和岩壁位置。")] private EndlessTrack track;
+        [SerializeField, Tooltip("跑步循环帧。")] private Sprite[] runFrames;
+        [SerializeField, Tooltip("首跳帧。末帧也是越过最高点后的下落姿势。")] private Sprite[] jumpFrames;
+        [SerializeField, Tooltip("三张翻滚关键帧，依次收身、倒转、回正。")] private Sprite[] rollFrames;
+        [SerializeField, Tooltip("地面滑铲期间保持的贴地姿势。")] private Sprite slideFrame;
+        [SerializeField, Tooltip("起跳的世界单位/秒。")] private float jumpSpeed = 9.6f;
+        [SerializeField, Tooltip("每秒增加的向下速度。")] private float gravity = 30f;
+        [SerializeField, Tooltip("一次滑铲的最长秒数。")] private float slideSeconds = 0.65f;
+        [SerializeField, Tooltip("脚底墨迹图。")] private Sprite runInkPuff;
+        [SerializeField, Tooltip("两团墨迹的间隔秒数。")] private float puffInterval = 0.11f;
+        [SerializeField, Tooltip("每团墨迹渐隐的秒数。")] private float puffLifetime = 0.42f;
+
+        // 空中下翻用 0.16 秒从按键时的高度落向赛道；三帧翻滚用 0.2 秒播完。
+        // 两个计时独立，最后一帧姿势可以在触地后短暂显示，新按键仍能立即接管。
+        private const float DiveSeconds = 0.16f, RollSeconds = 0.15f;
+        // 角色根节点在脚下，向前约 0.8 单位处是倒挂跑姿的头部。
+        private const float FrontReach = 0.8f;
+        private Motion state;
+        private SpriteRenderer figure;
+        private Camera view;
+        private WaterBattle battle;
+        private RunnerTrails trails;
+        private float velocityY, elapsed, wallDistance, diveStartY;
+        private float rollAge = RollSeconds;
+        private int jumpCount;
+        private bool restarting;
+        // 仅由 NinjutsuCombat 在终结海浪动画开始/结束时切换；锁定期间保持角色的世界坐标。
+        private bool ninjutsuMovementLocked;
+
+        public bool IsUnderRope => state == Motion.Under || state == Motion.Pinned;
+        public bool IsAirborne => state == Motion.Air || state == Motion.Dive;
+        public bool IsSliding => state == Motion.Slide;
+        public int JumpCount => jumpCount;
+        // HUD 与 Up 共用此条件。只有下一次按键确实能起跳时，才显示跃起的人形图标。
+        public bool CanJumpOnUp => !ninjutsuMovementLocked &&
+            (state == Motion.Run || state == Motion.Slide || state == Motion.Air) && jumpCount < 4;
+        /// <summary>供 HUD 与编辑器验收读取；锁定时键盘和屏幕按钮都不能改变玩家动作或位置。</summary>
+        public bool NinjutsuMovementLocked => ninjutsuMovementLocked;
+```
+上面是会用到的一些变量，注意public bool IsUnderRope => state == Motion.Under || state == Motion.Pinned;类似于这种写法，=>箭头运算符，可以理解为根本没有为IsUnderRope 变量分配内存，每次调用这个变量，实际上是获得右边式子实时运算获得的返回值。
+```csharp
+        public void SetNinjutsuMovementLocked(bool locked)
+        {
+            if (ninjutsuMovementLocked == locked) return;
+            ninjutsuMovementLocked = locked;
+            if (!locked) return;
+            if (IsSliding) Enter(Motion.Run);
+            if (state == Motion.Pinned) Enter(Motion.Under);
+            if (trails != null) trails.ClearFootprints();
+        }
+```
+这是将忍者状态设置为锁定的函数，比如正在滑铲然后进入大招最后的无敌帧无法行动，下翻到绳子下被墙体卡住无法前进。
