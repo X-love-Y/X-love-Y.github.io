@@ -161,3 +161,75 @@ nextX就是路段放进显示的场景中最左侧的位置，section.start = ne
             sectionNumber++;
         }
 ```
+%8是因为前面说的陆地和绳索1：7出现，加起来取余，余数0就是陆地。
+```csharp
+        /// <summary>路段完全离开可见范围时调用；关掉渲染和层级活动状态后可安全复用。</summary>
+        private void RecycleSection(Section section)
+        {
+            section.view.SetActive(false);
+            if (cachedSections.Count < MaxCachedSections) cachedSections.Push(section);
+            else Destroy(section.view);
+        }
+```
+这是回收路段的函数，先把最左端的路段设置为不可见，再放进对象池（栈）中。
+下面是Update里的逻辑，每帧更新实现一遍，前面说的让路段左移的Distance，就是在这里更新的值，还有判断左侧路段是否出界需要回收，也是在这里执行。
+```csharp
+        private void Update()
+        {
+            // 每帧统一推进世界距离，路段的逻辑边界与可视对象始终使用同一偏移量。
+            if (Failed || Completed) return;
+            lastDistance = Distance;
+            float delta = Speed * Time.deltaTime;
+            Distance += delta;
+            // 先收回已离开左侧安全边界的路段，再补齐右侧，可在同一帧借用刚归还的对象。
+            while (sections.Count > 0 && sections[0].end - Distance < -16f)
+            {
+               RecycleSection(sections[0]);
+               sections.RemoveAt(0);
+            }
+            while (nextX - Distance < 30f)
+            {
+                AddSection();
+                // 极端长帧可能一次跨过许多整段；刚补出的段若也已落到屏幕左边，
+                // 当帧立即归还，让下一段接着复用，避免短暂生成一串无用 GameObject。
+                while (sections.Count > 0 && sections[0].end - Distance < -16f)
+                {
+                    RecycleSection(sections[0]);
+                    sections.RemoveAt(0);
+                }
+            }
+            foreach (Section section in sections)
+            {
+                Vector3 p = section.view.transform.position;
+                p.x = (section.start + section.end) * 0.5f - Distance;
+                section.view.transform.position = p;
+            }
+        }
+```
+但是这里有些可优化的点，现在vibe coding时代很少人会手动写代码了，但是review是必不可少的环节，就像这里的对象池模式，用于显示的sections用的是List类型，每次回收最左端remove()，本案例对象少没什么，但是一旦对象多起来，remove还是很消耗性能的，因为sections.RemoveAt(0)，后面所有的元素都要前移（开销来源），之前的[1]变成[0]，不如使用更合适的队列Queue，先进先出，所以修改下列几处代码：
+```csharp
+           // 先收回已离开左侧安全边界的路段，再补齐右侧，可在同一帧借用刚归还的对象。
+            while (sections.Count > 0 && sections.Peek().end - Distance < -16f)
+            {
+                RecycleSection(sections.Dequeue());
+            }
+            while (nextX - Distance < 30f)
+            {
+                AddSection();
+                // 极端长帧可能一次跨过许多整段；刚补出的段若也已落到屏幕左边，
+                // 当帧立即归还，让下一段接着复用，避免短暂生成一串无用 GameObject。
+                while (sections.Count > 0 && sections.Peek().end - Distance < -16f)
+                {
+                    RecycleSection(sections.Dequeue());
+                }
+            }
+```
+```csharp
+        //AddSection()中
+        section.view.SetActive(true);
+        sections.Enqueue(section);
+        nextX += length;
+         ectionNumber++;
+```
+这里有小知识点，在C#中，Stack的放入和取出是push和pop，Queue是Enqueue和Dequeue，只看不取走都是Peek()。
+接下来开始EndlessRunner脚本的讲解，就是我们的玩家，依旧先大致讲解一下代码干了啥，心里有数，代码看着不烧心，这个脚本主要负责控制无尽跑酷中的玩家角色行为，核心是通过状态机管理角色的不同动作。首先在 Awake() 中获取角色的 SpriteRenderer、主相机和战斗组件，并将角色放置到赛道规定的初始位置，同时初始化脚印特效管理对象。随后在 Update() 中每帧更新角色状态，首先判断是否处于移动锁定或游戏结束状态，然后根据赛道的加速比例计算角色的目标横向位置，通过 MoveTowards 让角色逐渐向目标位置移动，并调用 EndlessTrack 的 SurfaceAt() 判断脚下是普通地面还是绳索，同时检测岩壁碰撞。如果角色被岩壁阻挡，就根据岩壁的逻辑位置和赛道当前滚动距离计算角色应该停留的位置，直到被挤出屏幕后判定失败。玩家输入主要通过 Up() 和 Down() 两个函数处理，Up() 根据当前状态决定是跳跃、翻回绳索上方还是重新开始游戏，Down() 则根据当前状态决定是滑铲、空中下翻还是翻到绳索下方。角色跳跃时通过垂直速度和重力计算 Y 坐标，下翻时则通过 Lerp 插值在规定时间内下降到赛道表面，绳索上下翻转则通过修改角色状态和 SpriteRenderer 的 flipY 实现。Enter() 是统一的状态切换入口，负责重置动作计时器，并在进入或退出滑铲时通知赛道开启或关闭加速。最后，UpdateFrame() 根据当前状态和计时器切换不同的精灵图片，RunnerTrails 则负责管理跑步时的脚印特效。整体来说，这段代码就是一个以状态机为核心的角色控制系统，EndlessTrack 负责提供赛道信息，EndlessRunner 根据赛道信息和玩家输入控制角色的移动、动作和动画。
