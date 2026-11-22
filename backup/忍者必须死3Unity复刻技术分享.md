@@ -286,3 +286,27 @@ nextX就是路段放进显示的场景中最左侧的位置，section.start = ne
         }
 ```
 这是将忍者状态设置为锁定的函数，比如正在滑铲然后进入大招最后的无敌帧无法行动，下翻到绳子下被墙体卡住无法前进。
+```chsrap
+       // 每次真正切换动作时重置动画时钟。离开滑铲的所有路径共用同一处减速逻辑。
+        private void Enter(Motion next)
+        {
+            if (IsSliding) track.SetSlideBoost(false);
+            state = next;
+            elapsed = 0f;
+            if (IsSliding) track.SetSlideBoost(true);
+        }
+```
+Enter是状态切换函数，假设从滑铲切换别的状态，if (IsSliding) track.SetSlideBoost(false)为真先把加速设置为假，然后state = next;切换为传入的要切换的状态，elapsed用来重置动画钟，新状态计时从零开始。
+```csharp
+        private void Turn(bool below)
+        {
+            Enter(below ? Motion.Under : Motion.Run);
+            rollAge = 0f;
+            velocityY = 0f;
+            jumpCount = 0;
+            // 绳上方按 ↓ 时贴到下侧；清掉旧侧墨迹，新墨迹按新接触面重新生成。
+            transform.position = new Vector3(transform.position.x, track.SurfaceY - (below ? 0.06f : 0f), 0f);
+            trails.TurnFootprints(below);
+        }
+```
+Turn(bool below) 是切换绳索上下侧的函数：在绳索上面 ↔ 绳索下面翻转，同时重置一堆运动参数、切换状态、改位置、通知脚印轨迹切换。
