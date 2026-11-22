@@ -10,9 +10,13 @@
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
-<meta name="description" content="&emsp;&emsp;下个春节要出新水忍和水武，这里玩家自制了一个水忍和水武器，尝试使用Unity复刻无尽跑酷，上下绳索，滑铲，多段跳跃，boss攻击，对战，武器，分段忍术等机制，后续进阶可能会加入AI boss战，Lua热更新脚本，多人联机，如果有时间的话...本文会尽可能从小白视角讲解代码和设计思路，但是不会讲解全部的代码，因为那将是巨大的工程且没有意义，但是依旧会解释很多基础的代码写法作用，保证干货满满，如果是同样热爱忍三或者Unity的入门小白，都可以参阅本篇文章，后续完善了会将项目上传供大家参考指教。">
+<meta name="description" content="# Unity 无尽跑酷项目开发与代码解析
+
+下个春节要出新水忍和水武，这里玩家自制了一个水忍和水武器，尝试使用 Unity 复刻无尽跑酷，包括上下绳索、滑铲、多段跳跃、Boss 攻击、对战、武器、分段忍术等机制。">
 <meta property="og:title" content="忍者必须死3Unity复刻技术分享">
-<meta property="og:description" content="&emsp;&emsp;下个春节要出新水忍和水武，这里玩家自制了一个水忍和水武器，尝试使用Unity复刻无尽跑酷，上下绳索，滑铲，多段跳跃，boss攻击，对战，武器，分段忍术等机制，后续进阶可能会加入AI boss战，Lua热更新脚本，多人联机，如果有时间的话...本文会尽可能从小白视角讲解代码和设计思路，但是不会讲解全部的代码，因为那将是巨大的工程且没有意义，但是依旧会解释很多基础的代码写法作用，保证干货满满，如果是同样热爱忍三或者Unity的入门小白，都可以参阅本篇文章，后续完善了会将项目上传供大家参考指教。">
+<meta property="og:description" content="# Unity 无尽跑酷项目开发与代码解析
+
+下个春节要出新水忍和水武，这里玩家自制了一个水忍和水武器，尝试使用 Unity 复刻无尽跑酷，包括上下绳索、滑铲、多段跳跃、Boss 攻击、对战、武器、分段忍术等机制。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://X-love-Y.github.io/post/ren-zhe-bi-xu-si-3Unity-fu-ke-ji-shu-fen-xiang.html">
 <meta property="og:image" content="https://avatars.githubusercontent.com/u/187077804?v=4&size=64">
@@ -83,304 +87,757 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><p>  下个春节要出新水忍和水武，这里玩家自制了一个水忍和水武器，尝试使用Unity复刻无尽跑酷，上下绳索，滑铲，多段跳跃，boss攻击，对战，武器，分段忍术等机制，后续进阶可能会加入AI boss战，Lua热更新脚本，多人联机，如果有时间的话...本文会尽可能从小白视角讲解代码和设计思路，但是不会讲解全部的代码，因为那将是巨大的工程且没有意义，但是依旧会解释很多基础的代码写法作用，保证干货满满，如果是同样热爱忍三或者Unity的入门小白，都可以参阅本篇文章，后续完善了会将项目上传供大家参考指教。<br>
-  首先是“开始游戏”，游戏的最开始，一个按钮，加载一个场景，代码如下</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">    <span class="pl-c">/// &lt;summary&gt;</span>
-    <span class="pl-c">/// 挂在 StartMenu 场景的 StartGameButton 对象上。</span>
-    <span class="pl-c">/// UGUI 的 Button 负责识别点击或键盘提交，本组件负责打开游戏场景。</span>
-    <span class="pl-c">/// &lt;/summary&gt;</span>
-    <span class="pl-kos">[</span><span class="pl-c1">RequireComponent</span><span class="pl-kos">(</span><span class="pl-k">typeof</span><span class="pl-kos">(</span><span class="pl-smi">Button</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-    <span class="pl-k">public</span> <span class="pl-k">sealed</span> <span class="pl-k">class</span> <span class="pl-smi">StartGameButton</span> <span class="pl-c1">:</span> <span class="pl-smi">MonoBehaviour</span>
+<div class="markdown-body" id="postBody"><h1>Unity 无尽跑酷项目开发与代码解析</h1>
+<p>下个春节要出新水忍和水武，这里玩家自制了一个水忍和水武器，尝试使用 Unity 复刻无尽跑酷，包括上下绳索、滑铲、多段跳跃、Boss 攻击、对战、武器、分段忍术等机制。后续进阶可能会加入 AI Boss 战、Lua 热更新脚本、多人联机，如果有时间的话……</p>
+<p>本文会尽可能从小白视角讲解代码和设计思路，但不会讲解全部代码，因为那将是一个巨大的工程，而且没有必要。不过依旧会解释很多基础的代码写法及其作用，保证干货满满。如果是同样热爱忍者必须死三或者 Unity 的入门小白，都可以参阅本篇文章。后续完善后会将项目上传，供大家参考指教。</p>
+<hr>
+<h1>一、开始游戏：场景加载</h1>
+<p>首先是「开始游戏」。游戏最开始只有一个按钮，点击按钮后加载游戏场景。</p>
+<p>代码如下：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-c">/// &lt;summary&gt;</span>
+<span class="pl-c">/// 挂在 StartMenu 场景的 StartGameButton 对象上。</span>
+<span class="pl-c">/// UGUI 的 Button 负责识别点击或键盘提交，本组件负责打开游戏场景。</span>
+<span class="pl-c">/// &lt;/summary&gt;</span>
+<span class="pl-kos">[</span><span class="pl-c1">RequireComponent</span><span class="pl-kos">(</span><span class="pl-k">typeof</span><span class="pl-kos">(</span><span class="pl-smi">Button</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">public</span> <span class="pl-k">sealed</span> <span class="pl-k">class</span> <span class="pl-smi">StartGameButton</span> <span class="pl-c1">:</span> <span class="pl-smi">MonoBehaviour</span>
+<span class="pl-kos">{</span>
+    <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"点击后加载的场景，必须已加入 Build Settings。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+    <span class="pl-k">private</span> <span class="pl-smi">string</span> <span class="pl-s1">gameSceneName</span> <span class="pl-c1">=</span> <span class="pl-s">"Game"</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">private</span> <span class="pl-smi">Button</span> <span class="pl-s1">button</span><span class="pl-kos">;</span>
+    <span class="pl-k">private</span> <span class="pl-smi">bool</span> <span class="pl-s1">loading</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Awake</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
     <span class="pl-kos">{</span>
-        <span class="pl-c">// 这里填写 Build Settings 中的场景名称。序列化字段允许直接在 Inspector 修改。</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"点击后加载的场景，必须已加入 Build Settings。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">string</span> <span class="pl-s1">gameSceneName</span> <span class="pl-c1">=</span> <span class="pl-s">"Game"</span><span class="pl-kos">;</span>
+        <span class="pl-s1">button</span> <span class="pl-c1">=</span> <span class="pl-smi">GetComponent</span><span class="pl-c1">&lt;</span><span class="pl-smi">Button</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
 
-        <span class="pl-k">private</span> <span class="pl-smi">Button</span> <span class="pl-s1">button</span><span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">bool</span> <span class="pl-s1">loading</span><span class="pl-kos">;</span>
+    <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">OnEnable</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">onClick</span><span class="pl-kos">.</span><span class="pl-en">AddListener</span><span class="pl-kos">(</span><span class="pl-s1">EnterGame</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
 
-        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Awake</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+    <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">OnDisable</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">onClick</span><span class="pl-kos">.</span><span class="pl-en">RemoveListener</span><span class="pl-kos">(</span><span class="pl-s1">EnterGame</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+
+    <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">EnterGame</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">loading</span><span class="pl-kos">)</span>
+            <span class="pl-k">return</span><span class="pl-kos">;</span>
+
+        <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">Application</span><span class="pl-kos">.</span><span class="pl-en">CanStreamedLevelBeLoaded</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">)</span><span class="pl-kos">)</span>
         <span class="pl-kos">{</span>
-            <span class="pl-c">// 同一个对象上的 Button 由 RequireComponent 保证存在，只需要取一次。</span>
-            <span class="pl-s1">button</span> <span class="pl-c1">=</span> <span class="pl-smi">GetComponent</span><span class="pl-c1">&lt;</span><span class="pl-smi">Button</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-s1">Debug</span><span class="pl-kos">.</span><span class="pl-en">LogError</span><span class="pl-kos">(</span>
+                <span class="pl-s"><span class="pl-s">$</span>"无法进入场景 <span class="pl-kos">{</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">}</span>，请检查 Build Settings 中的场景名称与启用状态。"</span><span class="pl-kos">,</span>
+                <span class="pl-k">this</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-k">return</span><span class="pl-kos">;</span>
         <span class="pl-kos">}</span>
 
-        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">OnEnable</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+        <span class="pl-s1">loading</span> <span class="pl-c1">=</span> <span class="pl-c1">true</span><span class="pl-kos">;</span>
+        <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">interactable</span> <span class="pl-c1">=</span> <span class="pl-c1">false</span><span class="pl-kos">;</span>
+
+        <span class="pl-s1">SceneManager</span><span class="pl-kos">.</span><span class="pl-en">LoadSceneAsync</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">,</span> <span class="pl-s1">LoadSceneMode</span><span class="pl-kos">.</span><span class="pl-s1">Single</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+<span class="pl-kos">}</span></pre></div>
+<h2>1. 基础语法与组件说明</h2>
+<p>首先看这几个比较常见的写法：</p>
+<p><strong><code class="notranslate">&lt;summary&gt;</code> 注释</strong></p>
+<p>这种 XML 文档注释一般用于说明整个类、函数或者属性的用途。鼠标悬停在代码中的类名或函数名上时，IDE 可以显示对应的注释，方便阅读和维护代码。</p>
+<p><strong><code class="notranslate">[RequireComponent(typeof(Button))]</code></strong></p>
+<p>顾名思义，挂载了这个脚本的 GameObject 必须拥有 Button 组件。如果没有，Unity 会自动添加，避免忘记添加依赖组件而导致空引用报错。</p>
+<p><strong><code class="notranslate">sealed</code></strong></p>
+<p>密封类，表示这个类不能被其他类继承。这里的脚本只是一个专用的开始游戏按钮，不需要被继承，所以使用 <code class="notranslate">sealed</code>。它主要用于限制继承关系、明确类的设计意图，某些情况下也可能带来微小的优化。</p>
+<p><strong><code class="notranslate">[SerializeField]</code></strong></p>
+<p>这个特性经常用到。正常情况下，<code class="notranslate">private</code> 变量不会显示在 Inspector 面板中，而加上 <code class="notranslate">[SerializeField]</code> 后，即使变量是 private，也可以在 Inspector 中查看和修改。</p>
+<p>这样既可以让变量在 Inspector 中配置，又不需要将它设置成 public，避免其他脚本随意访问和修改。</p>
+<p>这其实就是封装思想：将变量的访问权限控制在合理范围内，需要修改时通过特定的函数或属性进行操作。</p>
+<p><strong><code class="notranslate">[Tooltip]</code></strong></p>
+<p>鼠标悬停在 Inspector 面板中的变量名称上时，可以显示对应的说明文字，方便配置。</p>
+<p><strong><code class="notranslate">Awake()</code></strong></p>
+<p>Unity 常见的生命周期函数之一，在脚本实例被加载时执行，通常用于获取组件、初始化变量等。它一般在 <code class="notranslate">Start()</code> 之前执行。</p>
+<h2>2. OnEnable、OnDisable 与按钮事件</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Awake</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">button</span> <span class="pl-c1">=</span> <span class="pl-smi">GetComponent</span><span class="pl-c1">&lt;</span><span class="pl-smi">Button</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span>
+
+<span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">OnEnable</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">onClick</span><span class="pl-kos">.</span><span class="pl-en">AddListener</span><span class="pl-kos">(</span><span class="pl-s1">EnterGame</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span>
+
+<span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">OnDisable</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">onClick</span><span class="pl-kos">.</span><span class="pl-en">RemoveListener</span><span class="pl-kos">(</span><span class="pl-s1">EnterGame</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p><code class="notranslate">OnEnable()</code> 是脚本或 GameObject 变为启用状态时调用的生命周期函数，<code class="notranslate">OnDisable()</code> 则是在脚本或 GameObject 被禁用时调用。</p>
+<p><code class="notranslate">button.onClick</code> 是 UGUI Button 自带的点击事件。</p>
+<ul>
+<li><code class="notranslate">AddListener()</code>：注册一个监听函数。</li>
+<li><code class="notranslate">RemoveListener()</code>：移除一个监听函数。</li>
+</ul>
+<p>这里的意思就是：按钮启用时注册 <code class="notranslate">EnterGame()</code>，按钮被禁用时移除监听。</p>
+<p>为什么不把注册和移除写在 <code class="notranslate">Start()</code> 和 <code class="notranslate">OnDestroy()</code> 中？</p>
+<p>因为如果按钮所在的 GameObject 会反复隐藏和显示，例如弹窗，那么 <code class="notranslate">Start()</code> 只会执行一次，而 <code class="notranslate">OnEnable()</code> 和 <code class="notranslate">OnDisable()</code> 会随着启用状态反复执行。</p>
+<p>使用这两个函数配对管理监听，可以保证每次启用时只注册一次，禁用时及时移除，避免重复注册导致点击一次执行多次的问题。</p>
+<h2>3. EnterGame：场景加载逻辑</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">EnterGame</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">loading</span><span class="pl-kos">)</span>
+        <span class="pl-k">return</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">Application</span><span class="pl-kos">.</span><span class="pl-en">CanStreamedLevelBeLoaded</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">)</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">Debug</span><span class="pl-kos">.</span><span class="pl-en">LogError</span><span class="pl-kos">(</span><span class="pl-s">"场景无法加载"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-k">return</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+
+    <span class="pl-s1">loading</span> <span class="pl-c1">=</span> <span class="pl-c1">true</span><span class="pl-kos">;</span>
+    <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">interactable</span> <span class="pl-c1">=</span> <span class="pl-c1">false</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">SceneManager</span><span class="pl-kos">.</span><span class="pl-en">LoadSceneAsync</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">,</span> <span class="pl-s1">LoadSceneMode</span><span class="pl-kos">.</span><span class="pl-s1">Single</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>首先判断 <code class="notranslate">loading</code>，这是一个防止重复加载的标记。如果异步加载尚未结束，玩家连续点击按钮也只会发出一个加载请求。</p>
+<p>接下来：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">Application</span><span class="pl-kos">.</span><span class="pl-en">CanStreamedLevelBeLoaded</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">)</span><span class="pl-kos"></span></pre></div>
+<p>检查指定场景是否可以通过当前加载方式加载。对于普通的项目场景，需要确保它已经加入 Build Settings 中的场景列表并启用。</p>
+<p>Unity 顶部菜单栏的 <code class="notranslate">File -&gt; Build Settings</code> 可以管理场景列表，新版本 Unity 则可以通过 Build Profiles 管理构建场景。</p>
+<p>需要注意，场景直接在编辑器中打开，与运行时通过 <code class="notranslate">SceneManager.LoadSceneAsync()</code> 加载是两回事。不能因为编辑器中能够打开场景，就认为运行时一定可以加载。</p>
+<p>最后：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">SceneManager</span><span class="pl-kos">.</span><span class="pl-en">LoadSceneAsync</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">,</span> <span class="pl-s1">LoadSceneMode</span><span class="pl-kos">.</span><span class="pl-s1">Single</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>使用异步方式加载场景。</p>
+<p><code class="notranslate">LoadSceneAsync()</code> 不会像同步加载那样直接等待整个场景加载完成才继续执行，因此能够减少主线程阻塞。但异步加载不代表完全不会卡顿，资源初始化、场景激活等操作仍可能产生性能开销。</p>
+<p><code class="notranslate">LoadSceneMode.Single</code> 表示以单场景模式加载，新场景加载后会卸载原来的场景。</p>
+<hr>
+<h1>二、无尽跑酷赛道：EndlessTrack</h1>
+<p>接下来讲一下管理地图的脚本。</p>
+<p>地图的实现原理是按照一定规律组合地面和绳索，在屏幕右边生成，然后整体向左移动，制造出玩家一直向右奔跑的错觉。</p>
+<p>由于地图会不断重复出现和消失，这里采用对象池模式进行优化。因为频繁创建和销毁 GameObject 会产生额外的性能开销，还可能造成 GC（垃圾回收）卡顿。</p>
+<p>比如这里的地面和绳索，需要反复出现和消失。如果每次都重新 Instantiate 和 Destroy，就会产生大量不必要的开销。</p>
+<p>对象池模式就是提前创建一定数量的对象存起来，需要时取出来使用，不需要时放回去，只有对象池容量不足时才创建新对象。这样可以减少频繁创建和销毁对象带来的开销。</p>
+<h2>1. 变量与数据结构</h2>
+<p>首先看一些会用到的变量：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">public</span> <span class="pl-k">enum</span> <span class="pl-smi">Surface</span>
+<span class="pl-kos">{</span>
+    <span class="pl-c1">Ground</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Rope</span>
+<span class="pl-kos">}</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"赛道表面在世界坐标中的高度。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">surfaceY</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-c1">1.5f</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"赛道向左移动的世界单位/秒。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">speed</span> <span class="pl-c1">=</span> <span class="pl-c1">6f</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"每个区段的长度。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">sectionLength</span> <span class="pl-c1">=</span> <span class="pl-c1">14f</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"角色通常停留的屏幕横坐标。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">runnerX</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-c1">2.4f</span><span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-k">readonly</span> <span class="pl-smi">List</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span> <span class="pl-en">sections</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> List<span class="pl-c1">&lt;</span><span class="pl-c1">Section</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-k">readonly</span> <span class="pl-smi">Stack</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span> <span class="pl-s1">cachedSections</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Stack</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">int</span> <span class="pl-s1">MaxCachedSections</span> <span class="pl-c1">=</span> <span class="pl-c1">12</span><span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">nextX</span><span class="pl-kos">;</span>
+<span class="pl-k">private</span> <span class="pl-smi">int</span> <span class="pl-s1">sectionNumber</span><span class="pl-kos">;</span></pre></div>
+<p><code class="notranslate">enum</code> 是枚举，用来定义一组固定的分类。</p>
+<p>这里的 <code class="notranslate">Surface</code> 就是将路面分成两种类型：普通地面 Ground 和绳索 Rope。</p>
+<p>相比使用字符串判断，枚举更安全，也不容易因为拼写错误而导致判断失败。</p>
+<p><code class="notranslate">List</code> 是动态数组，类似于 C++ 中的 <code class="notranslate">vector</code>，可以动态添加和删除元素。这里的 <code class="notranslate">sections</code> 用来存放当前正在场景中显示的路段。</p>
+<p><code class="notranslate">readonly</code> 表示这个字段只能在声明时或者构造时赋值，不能再将它重新指向另一个 List，但仍然可以对 List 内部的元素进行添加和删除。</p>
+<p><code class="notranslate">Stack</code> 是栈，遵循后进先出（LIFO），也就是最后放进去的元素最先取出来。这里的 <code class="notranslate">cachedSections</code> 用来存放暂时不需要显示的路段。</p>
+<p><code class="notranslate">MaxCachedSections</code> 就是对象池最多保存 12 个闲置路段。</p>
+<h2>2. Section：自定义路段类</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-k">sealed</span> <span class="pl-k">class</span> <span class="pl-smi">Section</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">public</span> <span class="pl-smi">float</span> <span class="pl-s1">start</span><span class="pl-kos">;</span>
+    <span class="pl-k">public</span> <span class="pl-smi">float</span> <span class="pl-s1">end</span><span class="pl-kos">;</span>
+    <span class="pl-k">public</span> <span class="pl-smi">Surface</span> <span class="pl-s1">surface</span><span class="pl-kos">;</span>
+    <span class="pl-k">public</span> <span class="pl-smi">GameObject</span> <span class="pl-s1">view</span><span class="pl-kos">;</span>
+    <span class="pl-k">public</span> <span class="pl-smi">SpriteRenderer</span> <span class="pl-s1">renderer</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p><code class="notranslate">Section</code> 是一个自定义类，包含：</p>
+<ul>
+<li><code class="notranslate">start</code>：路段的逻辑起点。</li>
+<li><code class="notranslate">end</code>：路段的逻辑终点。</li>
+<li><code class="notranslate">surface</code>：路段类型，即地面或绳索。</li>
+<li><code class="notranslate">view</code>：负责显示路段的 GameObject。</li>
+<li><code class="notranslate">renderer</code>：这个 GameObject 上的 SpriteRenderer。</li>
+</ul>
+<p>这里就是面向对象思想，将一个路段包装成一个拥有自身属性的对象，方便统一管理。</p>
+<h2>3. 无尽跑酷的整体实现原理</h2>
+<p>先大致讲一下无尽跑酷的实现原理。</p>
+<p>首先是开局初始化，在程序规定的最左侧起始位置，预生成一段安全地面，然后继续生成路段，直到覆盖屏幕右侧并留出一定的预生成距离。</p>
+<p>为了简便，我让地面和绳索按照 1:7 的规律排列，也就是一段地面后面接七段绳索。</p>
+<p>生成的路段会先加入 <code class="notranslate">sections</code> 中进行管理，然后路段整体向左移动。当最左侧的路段，也就是 <code class="notranslate">sections[0]</code>，超过规定的回收界限后，就将它回收进对象池。右侧则不断生成新的路段，或者从对象池中取出已经创建好的路段重新使用。</p>
+<p>对象池有大小限制。刚开始会根据需要创建对象，池子满了以后，如果回收的对象超过容量，就直接销毁多余的对象；否则就反复从对象池中存取，实现重复利用。</p>
+<p>而路面的向左移动逻辑，就是在 <code class="notranslate">Update()</code> 中更新每个路段在世界坐标中的 X 位置。</p>
+<p>每个路段生成时都会记录一个 <code class="notranslate">start</code> 和 <code class="notranslate">end</code>，其中：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">end</span> <span class="pl-c1">=</span> <span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">length</span><span class="pl-kos">;</span></pre></div>
+<p>它们分别表示这个路段在逻辑世界坐标中的起点和终点。</p>
+<p>注意，从路段生成或者从对象池中取出，到再次放回对象池期间，这两个逻辑坐标是不会变化的。只有下一次从对象池取出并重新使用时，才会被赋予新的 <code class="notranslate">start</code> 和 <code class="notranslate">end</code>。</p>
+<p>路段的中心逻辑坐标就是：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-kos">(</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">/</span> <span class="pl-c1">2</span></pre></div>
+<p>程序另外维护一个 <code class="notranslate">Distance</code>，记录赛道整体已经向左滚动的距离。</p>
+<p>每帧将路段的中心逻辑坐标减去 <code class="notranslate">Distance</code>，得到它当前在世界坐标中的实际显示位置：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">实际X坐标</span> <span class="pl-c1">=</span> <span class="pl-kos">(</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">/</span> <span class="pl-c1">2</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span><span class="pl-kos">;</span></pre></div>
+<p>随着 <code class="notranslate">Distance</code> 不断增加，所有路段的实际 X 坐标就会不断减小，从而形成赛道整体向左移动的效果。</p>
+<p>现在来看代码。</p>
+<h2>4. Awake：赛道初始化</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Awake</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">Speed</span> <span class="pl-c1">=</span> <span class="pl-s1">speed</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">groundRockSprite</span> <span class="pl-c1">==</span> <span class="pl-c1">null</span> <span class="pl-c1">||</span> <span class="pl-s1">inkRopeSprite</span> <span class="pl-c1">==</span> <span class="pl-c1">null</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">Debug</span><span class="pl-kos">.</span><span class="pl-en">LogWarning</span><span class="pl-kos">(</span><span class="pl-s">"赛道 Sprite 引用不完整，临时改用纯色线条。"</span><span class="pl-kos">,</span> <span class="pl-k">this</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+        <span class="pl-s1">pixel</span> <span class="pl-c1">=</span> <span class="pl-s1">Sprite</span><span class="pl-kos">.</span><span class="pl-en">Create</span><span class="pl-kos">(</span>
+            <span class="pl-s1">Texture2D</span><span class="pl-kos">.</span><span class="pl-s1">whiteTexture</span><span class="pl-kos">,</span>
+            <span class="pl-k">new</span> <span class="pl-smi">Rect</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">,</span> <span class="pl-c1">0</span><span class="pl-kos">,</span> <span class="pl-c1">1</span><span class="pl-kos">,</span> <span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">,</span>
+            <span class="pl-k">new</span> <span class="pl-smi">Vector2</span><span class="pl-kos">(</span><span class="pl-c1">0.5f</span><span class="pl-kos">,</span> <span class="pl-c1">0.5f</span><span class="pl-kos">)</span><span class="pl-kos">,</span>
+            <span class="pl-c1">1f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+
+    <span class="pl-s1">nextX</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
+        <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>这里的 <code class="notranslate">nextX</code> 表示下一个待生成路段的起点，也就是当前已生成路段的最右侧边界。</p>
+<p>开局将它设置为 <code class="notranslate">-16f</code>，然后不断调用 <code class="notranslate">AddSection()</code> 生成路段，直到 <code class="notranslate">nextX</code> 达到规定的右侧预生成边界。</p>
+<p>这里的 <code class="notranslate">30f</code> 和 <code class="notranslate">-16f</code> 都是人为规定的世界坐标边界，不是自动根据摄像机计算出来的。</p>
+<p>另外，如果地面或绳索图片丢失，就创建一个纯白色的 1×1 像素 Sprite，作为临时替代素材，避免赛道完全消失。</p>
+<h2>5. AddSection：生成路段</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-smi">Surface</span> <span class="pl-s1">kind</span> <span class="pl-c1">=</span> <span class="pl-s1">sectionNumber</span> <span class="pl-c1">%</span> <span class="pl-c1">8</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span>
+        <span class="pl-c1">?</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span>
+        <span class="pl-c1">:</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Rope</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">float</span> <span class="pl-s1">length</span> <span class="pl-c1">=</span> <span class="pl-s1">sectionNumber</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span> <span class="pl-c1">?</span> <span class="pl-c1">25f</span> <span class="pl-c1">:</span> <span class="pl-s1">sectionLength</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">Section</span> <span class="pl-s1">section</span> <span class="pl-c1">=</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span>
+        <span class="pl-c1">?</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-en">Pop</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+        <span class="pl-c1">:</span> <span class="pl-s1">CreateSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">=</span> <span class="pl-s1">nextX</span><span class="pl-kos">;</span>
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">=</span> <span class="pl-s1">nextX</span> <span class="pl-c1">+</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">surface</span> <span class="pl-c1">=</span> <span class="pl-s1">kind</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">name</span> <span class="pl-c1">=</span> <span class="pl-s"><span class="pl-s">$</span>"<span class="pl-kos">{</span><span class="pl-s1">kind</span><span class="pl-kos">}</span>_<span class="pl-kos">{</span><span class="pl-s1">sectionNumber</span><span class="pl-c1">:</span>000<span class="pl-kos">}</span>"</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">localRotation</span> <span class="pl-c1">=</span> <span class="pl-s1">Quaternion</span><span class="pl-kos">.</span><span class="pl-s1">identity</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">float</span> <span class="pl-s1">y</span> <span class="pl-c1">=</span> <span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span>
+        <span class="pl-c1">?</span> <span class="pl-s1">surfaceY</span> <span class="pl-c1">-</span> <span class="pl-s1">groundTopOffset</span>
+        <span class="pl-c1">:</span> <span class="pl-s1">surfaceY</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Vector3</span><span class="pl-kos">(</span>
+        <span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">*</span> <span class="pl-c1">0.5f</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span><span class="pl-kos">,</span>
+        <span class="pl-s1">y</span><span class="pl-kos">,</span>
+        <span class="pl-c1">0f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">SpriteRenderer</span> <span class="pl-s1">line</span> <span class="pl-c1">=</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">renderer</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">Sprite</span> <span class="pl-s1">artwork</span> <span class="pl-c1">=</span> <span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span>
+        <span class="pl-c1">?</span> <span class="pl-s1">groundRockSprite</span>
+        <span class="pl-c1">:</span> <span class="pl-s1">inkRopeSprite</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">line</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span> <span class="pl-c1">?</span> <span class="pl-s1">artwork</span> <span class="pl-c1">:</span> <span class="pl-s1">pixel</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">line</span><span class="pl-kos">.</span><span class="pl-s1">color</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span>
+        <span class="pl-c1">?</span> <span class="pl-s1">Color</span><span class="pl-kos">.</span><span class="pl-s1">white</span>
+        <span class="pl-c1">:</span> <span class="pl-k">new</span> <span class="pl-smi">Color</span><span class="pl-kos">(</span><span class="pl-c1">0.055f</span><span class="pl-kos">,</span> <span class="pl-c1">0.065f</span><span class="pl-kos">,</span> <span class="pl-c1">0.09f</span><span class="pl-kos">,</span> <span class="pl-c1">1f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">line</span><span class="pl-kos">.</span><span class="pl-s1">sortingOrder</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">float</span> <span class="pl-s1">width</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span>
+        <span class="pl-c1">?</span> <span class="pl-s1">artwork</span><span class="pl-kos">.</span><span class="pl-s1">bounds</span><span class="pl-kos">.</span><span class="pl-s1">size</span><span class="pl-kos">.</span><span class="pl-s1">x</span>
+        <span class="pl-c1">:</span> <span class="pl-c1">1f</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">float</span> <span class="pl-s1">heightScale</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span>
+        <span class="pl-c1">?</span> <span class="pl-kos">(</span><span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">?</span> <span class="pl-c1">1f</span> <span class="pl-c1">:</span> <span class="pl-s1">ropeVerticalScale</span><span class="pl-kos">)</span>
+        <span class="pl-c1">:</span> <span class="pl-kos">(</span><span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">?</span> <span class="pl-c1">0.22f</span> <span class="pl-c1">:</span> <span class="pl-c1">0.055f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">localScale</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Vector3</span><span class="pl-kos">(</span>
+        <span class="pl-s1">length</span> <span class="pl-c1">/</span> <span class="pl-s1">width</span><span class="pl-kos">,</span>
+        <span class="pl-s1">heightScale</span><span class="pl-kos">,</span>
+        <span class="pl-c1">1f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Add</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">nextX</span> <span class="pl-c1">+=</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
+    <span class="pl-s1">sectionNumber</span><span class="pl-c1">++</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>首先看：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-smi">Surface</span> <span class="pl-s1">kind</span> <span class="pl-c1">=</span> <span class="pl-s1">sectionNumber</span> <span class="pl-c1">%</span> <span class="pl-c1">8</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span>
+    <span class="pl-c1">?</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span>
+    <span class="pl-c1">:</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Rope</span><span class="pl-kos">;</span></pre></div>
+<p>这里使用了取余运算符 <code class="notranslate">%</code>。</p>
+<p>因为前面说过，地面和绳索按照 1:7 的规律出现，总共八段。</p>
+<p>当 <code class="notranslate">sectionNumber</code> 除以 8 的余数为 0 时，就生成地面，否则生成绳索。</p>
+<p>例如：</p>
+<ul>
+<li>第 0 段：地面。</li>
+<li>第 1～7 段：绳索。</li>
+<li>第 8 段：地面。</li>
+<li>第 9～15 段：绳索。</li>
+</ul>
+<p>另外：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-smi">float</span> <span class="pl-s1">length</span> <span class="pl-c1">=</span> <span class="pl-s1">sectionNumber</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span> <span class="pl-c1">?</span> <span class="pl-c1">25f</span> <span class="pl-c1">:</span> <span class="pl-s1">sectionLength</span><span class="pl-kos">;</span></pre></div>
+<p>第一段地面长度特殊设置为 25，作为玩家出生时的安全地面，其余路段使用统一长度。</p>
+<p>接下来：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-smi">Section</span> <span class="pl-s1">section</span> <span class="pl-c1">=</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span>
+    <span class="pl-c1">?</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-en">Pop</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+    <span class="pl-c1">:</span> <span class="pl-s1">CreateSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>这里使用了三元运算符。</p>
+<p>如果对象池中还有闲置路段，就通过 <code class="notranslate">Pop()</code> 取出栈顶对象；如果对象池为空，就调用 <code class="notranslate">CreateSection()</code> 创建一个新的路段。</p>
+<p>随后重新设置这个路段的逻辑起点和终点：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">=</span> <span class="pl-s1">nextX</span><span class="pl-kos">;</span>
+<span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">=</span> <span class="pl-s1">nextX</span> <span class="pl-c1">+</span> <span class="pl-s1">length</span><span class="pl-kos">;</span></pre></div>
+<p>注意，虽然可能是从对象池中取出来的旧对象，但它现在已经被赋予了新的逻辑位置。</p>
+<p>然后通过：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">*</span> <span class="pl-c1">0.5f</span> <span class="pl-c1">-</span> Distance</pre></div>
+<p>计算这个路段当前应该显示的世界坐标 X。</p>
+<p>后面则是设置 Sprite、颜色、缩放比例等显示属性。</p>
+<p>最后：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Add</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-s1">nextX</span> <span class="pl-c1">+=</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
+<span class="pl-s1">sectionNumber</span><span class="pl-c1">++</span><span class="pl-kos">;</span></pre></div>
+<p>激活这个 GameObject，将它加入当前显示路段的管理集合，并更新下一个路段的生成起点。</p>
+<h2>6. RecycleSection：回收路段</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">RecycleSection</span><span class="pl-kos">(</span><span class="pl-smi">Section</span> <span class="pl-s1">section</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">false</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">MaxCachedSections</span><span class="pl-kos">)</span>
+        <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-en">Push</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-k">else</span>
+        <span class="pl-s1">Destroy</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>这是回收路段的函数。</p>
+<p>首先将路段设置为不可见，也就是关闭 GameObject。</p>
+<p>然后判断对象池是否已经达到最大容量：</p>
+<ul>
+<li>如果没有达到上限，就使用 <code class="notranslate">Push()</code> 将对象放入栈中。</li>
+<li>如果已经达到上限，就直接 <code class="notranslate">Destroy()</code> 销毁这个对象。</li>
+</ul>
+<p>这样就避免了对象池无限增长，占用过多内存。</p>
+<h2>7. Update：赛道移动与路段回收</h2>
+<p>下面是 Update 中的逻辑，每帧执行一次。</p>
+<p>前面说过，负责让路段整体左移的 <code class="notranslate">Distance</code> 就是在这里更新的，同时也在这里判断左侧路段是否出界，需要回收。</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Update</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">Failed</span> <span class="pl-c1">||</span> <span class="pl-s1">Completed</span><span class="pl-kos">)</span>
+        <span class="pl-k">return</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">lastDistance</span> <span class="pl-c1">=</span> <span class="pl-s1">Distance</span><span class="pl-kos">;</span>
+
+    <span class="pl-smi">float</span> <span class="pl-s1">delta</span> <span class="pl-c1">=</span> <span class="pl-s1">Speed</span> <span class="pl-c1">*</span> <span class="pl-s1">Time</span><span class="pl-kos">.</span><span class="pl-s1">deltaTime</span><span class="pl-kos">;</span>
+    <span class="pl-s1">Distance</span> <span class="pl-c1">+=</span> <span class="pl-s1">delta</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span>
+           <span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">RemoveAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+
+    <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+        <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span>
+               <span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
         <span class="pl-kos">{</span>
-            <span class="pl-c">// 订阅按钮本身的 onClick，鼠标、触屏和 UGUI 的键盘提交都走同一条路径。</span>
-            <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">onClick</span><span class="pl-kos">.</span><span class="pl-en">AddListener</span><span class="pl-kos">(</span><span class="pl-s1">EnterGame</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">RemoveAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
         <span class="pl-kos">}</span>
+    <span class="pl-kos">}</span>
 
-        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">OnDisable</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-c">// 和 OnEnable 配对。组件再次启用时，每次点击仍只执行一次。</span>
-            <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">onClick</span><span class="pl-kos">.</span><span class="pl-en">RemoveListener</span><span class="pl-kos">(</span><span class="pl-s1">EnterGame</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span>
+    <span class="pl-k">foreach</span> <span class="pl-kos">(</span><span class="pl-smi">Section</span> <span class="pl-s1">section</span> <span class="pl-k">in</span> <span class="pl-s1">sections</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-smi">Vector3</span> <span class="pl-s1">p</span> <span class="pl-c1">=</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span><span class="pl-kos">;</span>
 
-        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">EnterGame</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-c">// 异步加载尚未结束时，连续点击也只发出一个加载请求。</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">loading</span><span class="pl-kos">)</span>
-                <span class="pl-k">return</span><span class="pl-kos">;</span>
+        <span class="pl-s1">p</span><span class="pl-kos">.</span><span class="pl-s1">x</span> <span class="pl-c1">=</span> <span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">*</span> <span class="pl-c1">0.5f</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span><span class="pl-kos">;</span>
 
-            <span class="pl-c">// 在编辑器直接打开场景可以正常显示，但运行时切换还要求该场景已加入构建列表。</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">Application</span><span class="pl-kos">.</span><span class="pl-en">CanStreamedLevelBeLoaded</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">)</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-                <span class="pl-s1">Debug</span><span class="pl-kos">.</span><span class="pl-en">LogError</span><span class="pl-kos">(</span><span class="pl-s"><span class="pl-s">$</span>"无法进入场景 <span class="pl-kos">{</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">}</span>，请检查 Build Settings 中的场景名称与启用状态。"</span><span class="pl-kos">,</span> <span class="pl-k">this</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                <span class="pl-k">return</span><span class="pl-kos">;</span>
-            <span class="pl-kos">}</span>
+        <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+<span class="pl-kos">}</span></pre></div>
+<p>首先：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-smi">float</span> <span class="pl-s1">delta</span> <span class="pl-c1">=</span> <span class="pl-s1">Speed</span> <span class="pl-c1">*</span> <span class="pl-s1">Time</span><span class="pl-kos">.</span><span class="pl-s1">deltaTime</span><span class="pl-kos">;</span>
+<span class="pl-s1">Distance</span> <span class="pl-c1">+=</span> <span class="pl-s1">delta</span><span class="pl-kos">;</span></pre></div>
+<p><code class="notranslate">Speed</code> 是赛道移动速度，<code class="notranslate">Time.deltaTime</code> 是上一帧到当前帧经过的时间。</p>
+<p>两者相乘得到本帧赛道应该移动的距离，然后累加到 <code class="notranslate">Distance</code> 中。</p>
+<p>这样就实现了赛道随时间不断向左移动。</p>
+<p>接下来：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span>
+       <span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span><span class="pl-kos"></span></pre></div>
+<p>判断最左侧路段是否已经超过回收边界。</p>
+<p>这里的：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> Distance</pre></div>
+<p>表示最左侧路段终点当前的实际世界坐标。</p>
+<p>如果它小于 <code class="notranslate">-16f</code>，就说明整个路段已经超过回收界限，可以回收了。</p>
+<p>然后调用 <code class="notranslate">RecycleSection()</code> 将它放回对象池，再通过 <code class="notranslate">RemoveAt(0)</code> 从当前显示路段集合中移除。</p>
+<p>接下来：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>判断右侧是否需要补充新的路段。</p>
+<p><code class="notranslate">nextX - Distance</code> 表示当前最右侧边界的实际世界坐标。</p>
+<p>当它小于 30 时，就说明右侧预生成区域不足，需要继续生成新的路段。</p>
+<p>最后：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">foreach</span> <span class="pl-kos">(</span><span class="pl-smi">Section</span> <span class="pl-s1">section</span> <span class="pl-k">in</span> <span class="pl-s1">sections</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-smi">Vector3</span> <span class="pl-s1">p</span> <span class="pl-c1">=</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span><span class="pl-kos">;</span>
 
-            <span class="pl-s1">loading</span> <span class="pl-c1">=</span> <span class="pl-c1">true</span><span class="pl-kos">;</span>
-            <span class="pl-s1">button</span><span class="pl-kos">.</span><span class="pl-s1">interactable</span> <span class="pl-c1">=</span> <span class="pl-c1">false</span><span class="pl-kos">;</span>
-            <span class="pl-c">// Single 会卸载开始界面的 Canvas 和 EventSystem，随后显示 Game 场景中的角色。</span>
-            <span class="pl-s1">SceneManager</span><span class="pl-kos">.</span><span class="pl-en">LoadSceneAsync</span><span class="pl-kos">(</span><span class="pl-s1">gameSceneName</span><span class="pl-kos">,</span> <span class="pl-s1">LoadSceneMode</span><span class="pl-kos">.</span><span class="pl-s1">Single</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span>
-    <span class="pl-kos">}</span></pre></div>
-<p>  summary的这种注释写法一般用于写整个脚本用途，鼠标悬停Inspector可以显示。<br>
-  RequireComponent顾名思义，挂载了这个脚本的GameObject必须有这个组件，没有的话Unity自动帮你添加，可以用来防止遗忘，导致空引用报错。<br>
-  sealed是密封类，代表这个类不能被别的类继承。这个脚本是专用按钮，不需要继承，所以加 sealed，性能微小提升、防止被意外继承改逻辑。<br>
-  [SerializeField]经常用到，private变量不会在Inspector面板中出现并修改，加上[SerializeField]后就可以了，这样做的目的是既想要变量在Inspector面板中可以修改，又不想代码里外随便访问这个变量，而是通过特定的方式比如void Change(loding){loading = true};，即封装思想。<br>
-Tooltip是鼠标悬停可以展示的注释，Awake是Unity常见的生命周期函数，在Start之前，物体加载，脚本激活的时候立刻执行。<br>
-  OnEnable是脚本/物体变成激活状态的时候执行，相当于挂载了这个脚本的物体一加载到世界场景中，就执行这个函数，OnDisable就是脚本/物体关闭隐藏销毁的时候执行，button.onClick是UGUI按钮的点击事件，AddListener(注册函数)，按钮点击执行EnterGame()，RemoveListener(移除注册)后，按钮再次点击，不再执行EnterGame()，这是规范的UGUI写法，为什么不把注册和移除注册写在Start和OnDestroy里，因为如果这个按钮物体会反复隐藏、显示（比如弹窗），写在 Start 里只会注册一次，隐藏再显示的时候事件可能错乱、多次叠加监听，点一次执行好几次。<br>
-  EnterGame就是核心加载逻辑，CanStreamLevelBeLoaded就是检查场景有没有加到Build Settings列表里，Unity顶部菜单栏，File-&gt;Build Settings，是打包、管理场景列表的窗口。只有加到这个列表、并且前面打勾的场景，SceneManager.LoadSceneAsync()才能加载成功，编辑器里直接点 Play 运行的时候，哪怕不在列表里，临时也能切；打包成 exe 之后，不在列表里的场景完全找不到，直接报错，添加方法，直接拖拽或者点击Add Open Scenes。<br>
-  LoadSceneAsync异步加载场景，不会卡顿主线程，用LoadScene同步加载，大场景会直接卡死画面。<br>
-  接下来讲一下管理地图的脚本，地图的实现是按照一定规律组合地面和绳索，在屏幕右边生成，然后向左移动，制造成玩家在向右跑的错觉，由于地图的重复和需要不断出现消失，这里采用对象池优化，因为频繁的创建和销毁是很浪费性能的，并且可能引起GC（垃圾回收）卡顿，比如这里的地面和绳索，反复出现消失，对象池模式就是提前创建好足够数量的对象存起来，要用就拿出来，不用就放回去，开局创建直到游戏结束才销毁，大大提高性能，下面看看重要代码：<br>
-这些是部分会用到的变量，有注释可以看看，就不一一解释，后面用到再说，enum是枚举，就是分类地面有哪些种类，比起字符串容易打错从而找不到索引，用枚举更安全方便。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">public</span> <span class="pl-k">enum</span> <span class="pl-smi">Surface</span> <span class="pl-kos">{</span> <span class="pl-c1">Ground</span><span class="pl-kos">,</span> <span class="pl-c1">Rope</span> <span class="pl-kos">}</span>
+    <span class="pl-s1">p</span><span class="pl-kos">.</span><span class="pl-s1">x</span> <span class="pl-c1">=</span> <span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">*</span> <span class="pl-c1">0.5f</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span><span class="pl-kos">;</span>
 
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"赛道表面在世界坐标中的高度。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">surfaceY</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-c1">1.5f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"赛道向左移动的世界单位/秒。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">speed</span> <span class="pl-c1">=</span> <span class="pl-c1">6f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"每个区段的长度。起跑安全地面之后，循环生成 1 段地面和 7 段等长绳索，长度比例为 1:7。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">sectionLength</span> <span class="pl-c1">=</span> <span class="pl-c1">14f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"角色通常停留的屏幕横坐标，供路段查询。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">runnerX</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-c1">2.4f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"向下延伸的岩块 Sprite；顶部可行走边缘与 Surface Y 对齐。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-s1">Sprite</span> <span class="pl-s1">groundRockSprite</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"透明背景的黑色毛边绳索 Sprite。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-s1">Sprite</span> <span class="pl-s1">inkRopeSprite</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"岩块素材的可行走顶边相对图片中心高约 0.13 世界单位，放置时向下抵消。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">groundTopOffset</span> <span class="pl-c1">=</span> <span class="pl-c1">0.13f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"绳索素材画布留有透明区域，缩小竖向比例得到参考图中的细绳宽度。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">ropeVerticalScale</span> <span class="pl-c1">=</span> <span class="pl-c1">0.45f</span><span class="pl-kos">;</span>
-
-        <span class="pl-k">private</span> <span class="pl-k">readonly</span> <span class="pl-smi">List</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span> <span class="pl-en">sections</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> List<span class="pl-c1">&lt;</span><span class="pl-c1">Section</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-c">// 路段只有 SpriteRenderer 和 Transform，地面/绳索共用一个池，取出时重设完整外观。</span>
-        <span class="pl-c">// 上限防止极端长帧或编辑器测试一次创建大量区段后长期占用场景内存。</span>
-        <span class="pl-k">private</span> <span class="pl-k">readonly</span> <span class="pl-smi">Stack</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span> <span class="pl-s1">cachedSections</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Stack</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">int</span> <span class="pl-s1">MaxCachedSections</span> <span class="pl-c1">=</span> <span class="pl-c1">12</span><span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">Sprite</span> <span class="pl-s1">pixel</span><span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">nextX</span><span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">int</span> <span class="pl-s1">sectionNumber</span><span class="pl-kos">;</span></pre></div>
-<p>List是动态数组，类似于C++的vector，用来放出现在场景中的路段，readonly只是不允许把sections这个字段重新赋值给另一个List，stack是栈，先进先出，用来放暂时不用的路段，MaxCachedSections 就是对象池最多保存12个闲置路段</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">private</span> <span class="pl-k">sealed</span> <span class="pl-k">class</span> <span class="pl-smi">Section</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-k">public</span> <span class="pl-smi">float</span> <span class="pl-s1">start</span><span class="pl-kos">;</span>
-            <span class="pl-k">public</span> <span class="pl-smi">float</span> <span class="pl-s1">end</span><span class="pl-kos">;</span>
-            <span class="pl-k">public</span> <span class="pl-smi">Surface</span> <span class="pl-s1">surface</span><span class="pl-kos">;</span>
-            <span class="pl-k">public</span> <span class="pl-smi">GameObject</span> <span class="pl-s1">view</span><span class="pl-kos">;</span>
-            <span class="pl-k">public</span> <span class="pl-smi">SpriteRenderer</span> <span class="pl-s1">renderer</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>Section是自定义类，包含路段的起点，终点，路段类型（前面的枚举），显示地面的GameObject，和这个对象上的SpiteRenderer，就是面向对象思想，将路段包装成一个有基础属性的对象。<br>
-先大致讲一下无尽跑酷的实现原理，首先是开局初始化，在最左侧边界（程序规定），相机外预生成一段路段，然后一直生成到最右侧边界，这里是“陆地”和“绳索”的拼接，为了简便，我就让陆地和绳索1：7的排列出现，生成了的路段会先加入Sections显示出来，然后路段整体向左移动，超过一定界限，最左侧即Section[0]就被回收会对象池，右边同理重新生成新的路段，或者从对象池中拿出来用，对象池有大小限制，刚开始填充，满了以后就不再生成，反复从对象池中存取，而路面的向左移动逻辑，就是在UpDate里更新在世界坐标中的x位置，每个路段生成会有一个start和end的逻辑位置，end = start + length(路段长度)，就是这个路段刚生成在世界中的两端，注意在从生成或者说从对象池中拿出，到放回对象池期间，这个start和end是不会变的，（start + end) / 2是中心坐标，就是防止这个路段的位置，然后维护一个Distance，每个路段的（start + end) / 2 - Distance赋值给新的坐标，Distance不断增加，就形成了路面整体左移的效果，现在来看代码。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Awake</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-s1">Speed</span> <span class="pl-c1">=</span> <span class="pl-s1">speed</span><span class="pl-kos">;</span>
-            <span class="pl-c">// 正常情况下使用 Inspector 中的赛道图；只有素材丢失时才退回旧矩形，避免整条路消失。</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">groundRockSprite</span> <span class="pl-c1">==</span> <span class="pl-c1">null</span> <span class="pl-c1">||</span> <span class="pl-s1">inkRopeSprite</span> <span class="pl-c1">==</span> <span class="pl-c1">null</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-                <span class="pl-s1">Debug</span><span class="pl-kos">.</span><span class="pl-en">LogWarning</span><span class="pl-kos">(</span><span class="pl-s">"赛道 Sprite 引用不完整，临时改用纯色线条。"</span><span class="pl-kos">,</span> <span class="pl-k">this</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                <span class="pl-s1">pixel</span> <span class="pl-c1">=</span> <span class="pl-s1">Sprite</span><span class="pl-kos">.</span><span class="pl-en">Create</span><span class="pl-kos">(</span><span class="pl-s1">Texture2D</span><span class="pl-kos">.</span><span class="pl-s1">whiteTexture</span><span class="pl-kos">,</span> <span class="pl-k">new</span> <span class="pl-smi">Rect</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">,</span> <span class="pl-c1">0</span><span class="pl-kos">,</span> <span class="pl-c1">1</span><span class="pl-kos">,</span> <span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">,</span>
-                    <span class="pl-k">new</span> <span class="pl-smi">Vector2</span><span class="pl-kos">(</span><span class="pl-c1">0.5f</span><span class="pl-kos">,</span> <span class="pl-c1">0.5f</span><span class="pl-kos">)</span><span class="pl-kos">,</span> <span class="pl-c1">1f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-kos">}</span>
-            <span class="pl-s1">nextX</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">;</span>
-            <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
-                <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>nextX就是路段放进显示的场景中最左侧的位置，section.start = nextX，sction.end = nextX + length，这个nextX也是会不断计算变化的，并且是用来判断是否要添加新路段的判断标准，当nextX &lt; 30f了，就超过左边界了，说明路段已经左移动了很多，可以在右端添加新的路段补充了。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-c">// 第 0 段保留 25 单位安全地面，角色出生时前方有约两秒准备时间。</span>
-            <span class="pl-c">// 此后按八段一组生成：第 8、16……段为地面，其余七段均为绳索。</span>
-            <span class="pl-c">// 七段绳索彼此连续且共享 SurfaceY，角色上下换面不会在内部接缝被误判撞墙；</span>
-            <span class="pl-c">// 地面与绳索都采用 sectionLength，因此常规循环的实际行进长度比例也严格是 1:7。</span>
-            <span class="pl-smi">Surface</span> <span class="pl-s1">kind</span> <span class="pl-c1">=</span> <span class="pl-s1">sectionNumber</span> <span class="pl-c1">%</span> <span class="pl-c1">8</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span> <span class="pl-c1">?</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">:</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Rope</span><span class="pl-kos">;</span>
-            <span class="pl-smi">float</span> <span class="pl-s1">length</span> <span class="pl-c1">=</span> <span class="pl-s1">sectionNumber</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span> <span class="pl-c1">?</span> <span class="pl-c1">25f</span> <span class="pl-c1">:</span> <span class="pl-s1">sectionLength</span><span class="pl-kos">;</span>
-            <span class="pl-c">// 取得池中已经创建过 SpriteRenderer 的区段；池空时才实例化一次。</span>
-            <span class="pl-smi">Section</span> <span class="pl-s1">section</span> <span class="pl-c1">=</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">?</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-en">Pop</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-c1">:</span> <span class="pl-s1">CreateSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">=</span> <span class="pl-s1">nextX</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">=</span> <span class="pl-s1">nextX</span> <span class="pl-c1">+</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">surface</span> <span class="pl-c1">=</span> <span class="pl-s1">kind</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">name</span> <span class="pl-c1">=</span> <span class="pl-s"><span class="pl-s">$</span>"<span class="pl-kos">{</span><span class="pl-s1">kind</span><span class="pl-kos">}</span>_<span class="pl-kos">{</span><span class="pl-s1">sectionNumber</span><span class="pl-c1">:</span>000<span class="pl-kos">}</span>"</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">localRotation</span> <span class="pl-c1">=</span> <span class="pl-s1">Quaternion</span><span class="pl-kos">.</span><span class="pl-s1">identity</span><span class="pl-kos">;</span>
-            <span class="pl-c">// 地面图片上半部分透明，下半部分是岩块；用偏移让真正的草石顶边恰在角色脚底。</span>
-            <span class="pl-smi">float</span> <span class="pl-s1">y</span> <span class="pl-c1">=</span> <span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">?</span> <span class="pl-s1">surfaceY</span> <span class="pl-c1">-</span> <span class="pl-s1">groundTopOffset</span> <span class="pl-c1">:</span> <span class="pl-s1">surfaceY</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Vector3</span><span class="pl-kos">(</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">*</span> <span class="pl-c1">0.5f</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span><span class="pl-kos">,</span> <span class="pl-s1">y</span><span class="pl-kos">,</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-
-            <span class="pl-c">// 每次借用都重设 Sprite、颜色、排序和缩放。若上一轮是绳索而这一轮是地面，</span>
-            <span class="pl-c">// 不能留下旧外观；逻辑 start/end 也与新图形在同一处更新。</span>
-            <span class="pl-smi">SpriteRenderer</span> <span class="pl-s1">line</span> <span class="pl-c1">=</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">renderer</span><span class="pl-kos">;</span>
-            <span class="pl-smi">Sprite</span> <span class="pl-s1">artwork</span> <span class="pl-c1">=</span> <span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">?</span> <span class="pl-s1">groundRockSprite</span> <span class="pl-c1">:</span> <span class="pl-s1">inkRopeSprite</span><span class="pl-kos">;</span>
-            <span class="pl-s1">line</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span> <span class="pl-c1">?</span> <span class="pl-s1">artwork</span> <span class="pl-c1">:</span> <span class="pl-s1">pixel</span><span class="pl-kos">;</span>
-            <span class="pl-s1">line</span><span class="pl-kos">.</span><span class="pl-s1">color</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span> <span class="pl-c1">?</span> <span class="pl-s1">Color</span><span class="pl-kos">.</span><span class="pl-s1">white</span> <span class="pl-c1">:</span> <span class="pl-k">new</span> <span class="pl-smi">Color</span><span class="pl-kos">(</span><span class="pl-c1">0.055f</span><span class="pl-kos">,</span> <span class="pl-c1">0.065f</span><span class="pl-kos">,</span> <span class="pl-c1">0.09f</span><span class="pl-kos">,</span> <span class="pl-c1">1f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">line</span><span class="pl-kos">.</span><span class="pl-s1">sortingOrder</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span><span class="pl-kos">;</span>
-            <span class="pl-smi">float</span> <span class="pl-s1">width</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span> <span class="pl-c1">?</span> <span class="pl-s1">artwork</span><span class="pl-kos">.</span><span class="pl-s1">bounds</span><span class="pl-kos">.</span><span class="pl-s1">size</span><span class="pl-kos">.</span><span class="pl-s1">x</span> <span class="pl-c1">:</span> <span class="pl-c1">1f</span><span class="pl-kos">;</span>
-            <span class="pl-smi">float</span> <span class="pl-s1">heightScale</span> <span class="pl-c1">=</span> <span class="pl-s1">artwork</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span>
-                <span class="pl-c1">?</span> <span class="pl-kos">(</span><span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">?</span> <span class="pl-c1">1f</span> <span class="pl-c1">:</span> <span class="pl-s1">ropeVerticalScale</span><span class="pl-kos">)</span>
-                <span class="pl-c1">:</span> <span class="pl-kos">(</span><span class="pl-s1">kind</span> <span class="pl-c1">==</span> <span class="pl-s1">Surface</span><span class="pl-kos">.</span><span class="pl-s1">Ground</span> <span class="pl-c1">?</span> <span class="pl-c1">0.22f</span> <span class="pl-c1">:</span> <span class="pl-c1">0.055f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">localScale</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Vector3</span><span class="pl-kos">(</span><span class="pl-s1">length</span> <span class="pl-c1">/</span> <span class="pl-s1">width</span><span class="pl-kos">,</span> <span class="pl-s1">heightScale</span><span class="pl-kos">,</span> <span class="pl-c1">1f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Add</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">nextX</span> <span class="pl-c1">+=</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
-            <span class="pl-s1">sectionNumber</span><span class="pl-c1">++</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>%8是因为前面说的陆地和绳索1：7出现，加起来取余，余数0就是陆地。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-c">/// &lt;summary&gt;路段完全离开可见范围时调用；关掉渲染和层级活动状态后可安全复用。&lt;/summary&gt;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">RecycleSection</span><span class="pl-kos">(</span><span class="pl-smi">Section</span> <span class="pl-s1">section</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">false</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">MaxCachedSections</span><span class="pl-kos">)</span> <span class="pl-s1">cachedSections</span><span class="pl-kos">.</span><span class="pl-en">Push</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-k">else</span> <span class="pl-s1">Destroy</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>这是回收路段的函数，先把最左端的路段设置为不可见，再放进对象池（栈）中。<br>
-下面是Update里的逻辑，每帧更新实现一遍，前面说的让路段左移的Distance，就是在这里更新的值，还有判断左侧路段是否出界需要回收，也是在这里执行。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Update</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-c">// 每帧统一推进世界距离，路段的逻辑边界与可视对象始终使用同一偏移量。</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">Failed</span> <span class="pl-c1">||</span> <span class="pl-s1">Completed</span><span class="pl-kos">)</span> <span class="pl-k">return</span><span class="pl-kos">;</span>
-            <span class="pl-s1">lastDistance</span> <span class="pl-c1">=</span> <span class="pl-s1">Distance</span><span class="pl-kos">;</span>
-            <span class="pl-smi">float</span> <span class="pl-s1">delta</span> <span class="pl-c1">=</span> <span class="pl-s1">Speed</span> <span class="pl-c1">*</span> <span class="pl-s1">Time</span><span class="pl-kos">.</span><span class="pl-s1">deltaTime</span><span class="pl-kos">;</span>
-            <span class="pl-s1">Distance</span> <span class="pl-c1">+=</span> <span class="pl-s1">delta</span><span class="pl-kos">;</span>
-            <span class="pl-c">// 先收回已离开左侧安全边界的路段，再补齐右侧，可在同一帧借用刚归还的对象。</span>
-            <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-               <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-               <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">RemoveAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-kos">}</span>
-            <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-                <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                <span class="pl-c">// 极端长帧可能一次跨过许多整段；刚补出的段若也已落到屏幕左边，</span>
-                <span class="pl-c">// 当帧立即归还，让下一段接着复用，避免短暂生成一串无用 GameObject。</span>
-                <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
-                <span class="pl-kos">{</span>
-                    <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                    <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">RemoveAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                <span class="pl-kos">}</span>
-            <span class="pl-kos">}</span>
-            <span class="pl-k">foreach</span> <span class="pl-kos">(</span><span class="pl-smi">Section</span> <span class="pl-s1">section</span> <span class="pl-k">in</span> <span class="pl-s1">sections</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-                <span class="pl-smi">Vector3</span> <span class="pl-s1">p</span> <span class="pl-c1">=</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span><span class="pl-kos">;</span>
-                <span class="pl-s1">p</span><span class="pl-kos">.</span><span class="pl-s1">x</span> <span class="pl-c1">=</span> <span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">start</span> <span class="pl-c1">+</span> <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">end</span><span class="pl-kos">)</span> <span class="pl-c1">*</span> <span class="pl-c1">0.5f</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span><span class="pl-kos">;</span>
-                <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span><span class="pl-kos">;</span>
-            <span class="pl-kos">}</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>但是这里有些可优化的点，现在vibe coding时代很少人会手动写代码了，但是review是必不可少的环节，就像这里的对象池模式，用于显示的sections用的是List类型，每次回收最左端remove()，本案例对象少没什么，但是一旦对象多起来，remove还是很消耗性能的，因为sections.RemoveAt(0)，后面所有的元素都要前移（开销来源），之前的[1]变成[0]，不如使用更合适的队列Queue，先进先出，所以修改下列几处代码：</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">           <span class="pl-c">// 先收回已离开左侧安全边界的路段，再补齐右侧，可在同一帧借用刚归还的对象。</span>
-            <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Peek</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-                <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Dequeue</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-kos">}</span>
-            <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
-            <span class="pl-kos">{</span>
-                <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                <span class="pl-c">// 极端长帧可能一次跨过许多整段；刚补出的段若也已落到屏幕左边，</span>
-                <span class="pl-c">// 当帧立即归还，让下一段接着复用，避免短暂生成一串无用 GameObject。</span>
-                <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Peek</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
-                <span class="pl-kos">{</span>
-                    <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Dequeue</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-                <span class="pl-kos">}</span>
-            <span class="pl-kos">}</span></pre></div>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-c">//AddSection()中</span>
-        <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Enqueue</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-s1">nextX</span> <span class="pl-c1">+=</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
-         <span class="pl-s1">ectionNumber</span><span class="pl-c1">++</span><span class="pl-kos">;</span></pre></div>
-<p>这里有小知识点，在C#中，Stack的放入和取出是push和pop，Queue是Enqueue和Dequeue，只看不取走都是Peek()。<br>
-接下来开始EndlessRunner脚本的讲解，就是我们的玩家，依旧先大致讲解一下代码干了啥，心里有数，代码看着不烧心，这个脚本主要负责控制无尽跑酷中的玩家角色行为，核心是通过状态机管理角色的不同动作。首先在 Awake() 中获取角色的 SpriteRenderer、主相机和战斗组件，并将角色放置到赛道规定的初始位置，同时初始化脚印特效管理对象。随后在 Update() 中每帧更新角色状态，首先判断是否处于移动锁定或游戏结束状态，然后根据赛道的加速比例计算角色的目标横向位置，通过 MoveTowards 让角色逐渐向目标位置移动，并调用 EndlessTrack 的 SurfaceAt() 判断脚下是普通地面还是绳索，同时检测岩壁碰撞。如果角色被岩壁阻挡，就根据岩壁的逻辑位置和赛道当前滚动距离计算角色应该停留的位置，直到被挤出屏幕后判定失败。玩家输入主要通过 Up() 和 Down() 两个函数处理，Up() 根据当前状态决定是跳跃、翻回绳索上方还是重新开始游戏，Down() 则根据当前状态决定是滑铲、空中下翻还是翻到绳索下方。角色跳跃时通过垂直速度和重力计算 Y 坐标，下翻时则通过 Lerp 插值在规定时间内下降到赛道表面，绳索上下翻转则通过修改角色状态和 SpriteRenderer 的 flipY 实现。Enter() 是统一的状态切换入口，负责重置动作计时器，并在进入或退出滑铲时通知赛道开启或关闭加速。最后，UpdateFrame() 根据当前状态和计时器切换不同的精灵图片，RunnerTrails 则负责管理跑步时的脚印特效。整体来说，这段代码就是一个以状态机为核心的角色控制系统，EndlessTrack 负责提供赛道信息，EndlessRunner 根据赛道信息和玩家输入控制角色的移动、动作和动画。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"提供脚底高度、路面种类、滚动速度和岩壁位置。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-s1">EndlessTrack</span> <span class="pl-s1">track</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"跑步循环帧。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">Sprite</span><span class="pl-kos">[</span><span class="pl-kos">]</span> <span class="pl-s1">runFrames</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"首跳帧。末帧也是越过最高点后的下落姿势。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">Sprite</span><span class="pl-kos">[</span><span class="pl-kos">]</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"三张翻滚关键帧，依次收身、倒转、回正。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">Sprite</span><span class="pl-kos">[</span><span class="pl-kos">]</span> <span class="pl-s1">rollFrames</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"地面滑铲期间保持的贴地姿势。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-s1">Sprite</span> <span class="pl-s1">slideFrame</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"起跳的世界单位/秒。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">jumpSpeed</span> <span class="pl-c1">=</span> <span class="pl-c1">9.6f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"每秒增加的向下速度。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">gravity</span> <span class="pl-c1">=</span> <span class="pl-c1">30f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"一次滑铲的最长秒数。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">slideSeconds</span> <span class="pl-c1">=</span> <span class="pl-c1">0.65f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"脚底墨迹图。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-s1">Sprite</span> <span class="pl-s1">runInkPuff</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"两团墨迹的间隔秒数。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">puffInterval</span> <span class="pl-c1">=</span> <span class="pl-c1">0.11f</span><span class="pl-kos">;</span>
-        <span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"每团墨迹渐隐的秒数。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span> <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">puffLifetime</span> <span class="pl-c1">=</span> <span class="pl-c1">0.42f</span><span class="pl-kos">;</span>
-
-        <span class="pl-c">// 空中下翻用 0.16 秒从按键时的高度落向赛道；三帧翻滚用 0.2 秒播完。</span>
-        <span class="pl-c">// 两个计时独立，最后一帧姿势可以在触地后短暂显示，新按键仍能立即接管。</span>
-        <span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">float</span> <span class="pl-s1">DiveSeconds</span> <span class="pl-c1">=</span> <span class="pl-c1">0.16f</span><span class="pl-kos">,</span> RollSeconds <span class="pl-c1">=</span> <span class="pl-c1">0.15f</span><span class="pl-kos">;</span>
-        <span class="pl-c">// 角色根节点在脚下，向前约 0.8 单位处是倒挂跑姿的头部。</span>
-        <span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">float</span> <span class="pl-s1">FrontReach</span> <span class="pl-c1">=</span> <span class="pl-c1">0.8f</span><span class="pl-kos">;</span>
-        private Motion state<span class="pl-kos">;</span>
-        private SpriteRenderer figure<span class="pl-kos">;</span>
-        private Camera view<span class="pl-kos">;</span>
-        private WaterBattle battle<span class="pl-kos">;</span>
-        private RunnerTrails trails<span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">velocityY</span><span class="pl-kos">,</span> elapsed<span class="pl-kos">,</span> wallDistance<span class="pl-kos">,</span> diveStartY<span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">rollAge</span> <span class="pl-c1">=</span> RollSeconds<span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">int</span> <span class="pl-s1">jumpCount</span><span class="pl-kos">;</span>
-        <span class="pl-k">private</span> <span class="pl-smi">bool</span> <span class="pl-s1">restarting</span><span class="pl-kos">;</span>
-        <span class="pl-c">// 仅由 NinjutsuCombat 在终结海浪动画开始/结束时切换；锁定期间保持角色的世界坐标。</span>
-        <span class="pl-k">private</span> <span class="pl-smi">bool</span> <span class="pl-s1">ninjutsuMovementLocked</span><span class="pl-kos">;</span>
-
-        <span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsUnderRope</span> <span class="pl-c1">=&gt;</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Under <span class="pl-c1">||</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Pinned<span class="pl-kos">;</span>
-        <span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsAirborne</span> <span class="pl-c1">=&gt;</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Air <span class="pl-c1">||</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Dive<span class="pl-kos">;</span>
-        <span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsSliding</span> <span class="pl-c1">=&gt;</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Slide<span class="pl-kos">;</span>
-        <span class="pl-k">public</span> <span class="pl-smi">int</span> <span class="pl-s1">JumpCount</span> <span class="pl-c1">=&gt;</span> jumpCount<span class="pl-kos">;</span>
-        <span class="pl-c">// HUD 与 Up 共用此条件。只有下一次按键确实能起跳时，才显示跃起的人形图标。</span>
-        <span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-en">CanJumpOnUp</span> <span class="pl-c1">=&gt;</span> <span class="pl-c1">!</span>ninjutsuMovementLocked <span class="pl-c1">&amp;&amp;</span>
-            <span class="pl-kos">(</span><span class="pl-smi">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span> <span class="pl-c1">||</span> <span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Slide</span> <span class="pl-c1">||</span> <span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Air</span><span class="pl-kos">)</span> <span class="pl-c1">&amp;&amp;</span> jumpCount <span class="pl-c1">&lt;</span> <span class="pl-c1">4</span><span class="pl-kos">;</span>
-        <span class="pl-c">/// &lt;summary&gt;供 HUD 与编辑器验收读取；锁定时键盘和屏幕按钮都不能改变玩家动作或位置。&lt;/summary&gt;</span>
-        <span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">NinjutsuMovementLocked</span> <span class="pl-c1">=&gt;</span> ninjutsuMovementLocked<span class="pl-kos">;</span></pre></div>
-<p>上面是会用到的一些变量，注意public bool IsUnderRope =&gt; state == Motion.Under || state == Motion.Pinned;类似于这种写法，=&gt;箭头运算符，可以理解为根本没有为IsUnderRope 变量分配内存，每次调用这个变量，实际上是获得右边式子实时运算获得的返回值。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">SetNinjutsuMovementLocked</span><span class="pl-kos">(</span><span class="pl-smi">bool</span> <span class="pl-s1">locked</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">ninjutsuMovementLocked</span> <span class="pl-c1">==</span> <span class="pl-s1">locked</span><span class="pl-kos">)</span> <span class="pl-k">return</span><span class="pl-kos">;</span>
-            <span class="pl-s1">ninjutsuMovementLocked</span> <span class="pl-c1">=</span> <span class="pl-s1">locked</span><span class="pl-kos">;</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">locked</span><span class="pl-kos">)</span> <span class="pl-k">return</span><span class="pl-kos">;</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span> <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Pinned</span><span class="pl-kos">)</span> <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Under</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">trails</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span><span class="pl-kos">)</span> <span class="pl-s1">trails</span><span class="pl-kos">.</span><span class="pl-en">ClearFootprints</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>这是将忍者状态设置为锁定的函数，比如正在滑铲然后进入大招最后的无敌帧无法行动，下翻到绳子下被墙体卡住无法前进。</p>
-<pre lang="chsrap" class="notranslate"><code class="notranslate">       // 每次真正切换动作时重置动画时钟。离开滑铲的所有路径共用同一处减速逻辑。
-        private void Enter(Motion next)
-        {
-            if (IsSliding) track.SetSlideBoost(false);
-            state = next;
-            elapsed = 0f;
-            if (IsSliding) track.SetSlideBoost(true);
-        }
+    <span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>遍历所有当前显示的路段，根据它们各自的逻辑中心位置和当前 <code class="notranslate">Distance</code>，重新计算实际世界坐标。</p>
+<p>注意，这里只修改 X 坐标，Y 和 Z 坐标保持不变。</p>
+<p>这样就完成了整条赛道的滚动。</p>
+<h2>8. 代码优化：使用 Queue 替代 List</h2>
+<p>这里有一个可以优化的地方。</p>
+<p>现在 Vibe Coding 时代，很少有人会完全手动编写所有代码，但是 Code Review 依旧是必不可少的环节。</p>
+<p>就像这里的对象管理，当前用于显示的 <code class="notranslate">sections</code> 使用的是 <code class="notranslate">List</code> 类型。</p>
+<p>每次回收最左端路段时：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">RemoveAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>都需要将后面的所有元素向前移动一位。</p>
+<p>例如原本：</p>
+<pre lang="text" class="notranslate"><code class="notranslate">[0] [1] [2] [3] [4]
 </code></pre>
-<p>Enter是状态切换函数，假设从滑铲切换别的状态，if (IsSliding) track.SetSlideBoost(false)为真先把加速设置为假，然后state = next;切换为传入的要切换的状态，elapsed用来重置动画钟，新状态计时从零开始。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Turn</span><span class="pl-kos">(</span><span class="pl-smi">bool</span> <span class="pl-s1">below</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">below</span> <span class="pl-c1">?</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Under</span> <span class="pl-c1">:</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">rollAge</span> <span class="pl-c1">=</span> <span class="pl-c1">0f</span><span class="pl-kos">;</span>
-            <span class="pl-s1">velocityY</span> <span class="pl-c1">=</span> <span class="pl-c1">0f</span><span class="pl-kos">;</span>
-            <span class="pl-s1">jumpCount</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span><span class="pl-kos">;</span>
-            <span class="pl-c">// 绳上方按 ↓ 时贴到下侧；清掉旧侧墨迹，新墨迹按新接触面重新生成。</span>
-            <span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Vector3</span><span class="pl-kos">(</span><span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span><span class="pl-kos">.</span><span class="pl-s1">x</span><span class="pl-kos">,</span> <span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-s1">SurfaceY</span> <span class="pl-c1">-</span> <span class="pl-kos">(</span><span class="pl-s1">below</span> <span class="pl-c1">?</span> <span class="pl-c1">0.06f</span> <span class="pl-c1">:</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span><span class="pl-kos">,</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-            <span class="pl-s1">trails</span><span class="pl-kos">.</span><span class="pl-en">TurnFootprints</span><span class="pl-kos">(</span><span class="pl-s1">below</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>Turn(bool below) 是切换绳索上下侧的函数：在绳索上面 ↔ 绳索下面翻转，同时重置一堆运动参数、切换状态、改位置、通知脚印轨迹切换。</p>
-<div class="highlight highlight-source-cs"><pre class="notranslate">        <span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">UpdateFrame</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
-        <span class="pl-kos">{</span>
-            <span class="pl-c">// 15 帧/秒播放三个姿势，总计 0.2 秒。到时交回当前跑步或跳跃姿势。</span>
-            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">rollAge</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">RollSeconds</span> <span class="pl-c1">-</span> <span class="pl-c1">0.000001f</span><span class="pl-kos">)</span>
-                <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">rollFrames</span><span class="pl-kos">[</span><span class="pl-s1">Mathf</span><span class="pl-kos">.</span><span class="pl-en">Min</span><span class="pl-kos">(</span><span class="pl-c1">2</span><span class="pl-kos">,</span> <span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">rollAge</span> <span class="pl-c1">*</span> <span class="pl-c1">15f</span> <span class="pl-c1">+</span> <span class="pl-c1">0.000001f</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
-            <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Pinned</span><span class="pl-kos">)</span> <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">runFrames</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
-            <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span> <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">slideFrame</span><span class="pl-kos">;</span>
-            <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Air</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">velocityY</span> <span class="pl-c1">&lt;=</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span> <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">[</span><span class="pl-s1">jumpFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span> <span class="pl-c1">-</span> <span class="pl-c1">1</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
-            <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Air</span><span class="pl-kos">)</span> <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">[</span><span class="pl-s1">Mathf</span><span class="pl-kos">.</span><span class="pl-en">Min</span><span class="pl-kos">(</span><span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">elapsed</span> <span class="pl-c1">*</span> <span class="pl-c1">12f</span><span class="pl-kos">)</span><span class="pl-kos">,</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span> <span class="pl-c1">-</span> <span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
-            <span class="pl-k">else</span> <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">runFrames</span><span class="pl-kos">[</span><span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">elapsed</span> <span class="pl-c1">*</span> <span class="pl-c1">15f</span><span class="pl-kos">)</span> <span class="pl-c1">%</span> <span class="pl-s1">runFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
-        <span class="pl-kos">}</span></pre></div>
-<p>UpdateFrame()`专门根据当前状态 + 计时变量，选对应的 Sprite 贴图，是这套角色的动画切换函数。这个函数很重要，乍一看很复杂，其实很简单，这里玩家并没有专门制作跑步动画跳跃动画等，用动画状态机来管理，而是直接代码驱动，将动画帧存在数组里，然后每帧计算出该数组的下标播放对应帧动画，Mathf.Min(2, (int)(rollAge * 15f + 0.000001f))以这个式子为例，Min括号里的取最小值，即封顶，这里些2，是因为数组里只有三个动画帧，下标0，1，2，超过2就越界了，15帧每秒，播放3帧正好0.2秒，rollAge是已经播放了多久的动画，播放的时间乘上每秒播放的帧数，就是这个时间播放了多少帧，对2取余，就是该播放到那一帧（因为数组里只有三帧）。后面的空中上升播放跳跃动画和循环播放跑步动画也是这个原理。</p></div>
+<p>删除 <code class="notranslate">[0]</code> 后：</p>
+<pre lang="text" class="notranslate"><code class="notranslate">[1] [2] [3] [4]
+</code></pre>
+<p>后面的元素都要移动位置。</p>
+<p>虽然本案例中的对象数量不多，性能影响有限，但是如果对象数量增加，这种操作就会产生不必要的开销。</p>
+<p>实际上，我们的路段管理具有很明显的先进先出特征：最早生成的路段最先被回收，最新生成的路段位于最右侧。</p>
+<p>因此，使用 <code class="notranslate">Queue</code>（队列）更加合适。</p>
+<p>队列遵循先进先出（FIFO），正好符合这里的使用场景。</p>
+<p>首先修改变量声明：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-k">readonly</span> <span class="pl-smi">Queue</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span> <span class="pl-s1">sections</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Queue</span><span class="pl-c1">&lt;</span><span class="pl-smi">Section</span><span class="pl-c1">&gt;</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>然后修改 Update 中的回收逻辑：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-c">// 回收已经离开左侧安全边界的路段</span>
+<span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span>
+       <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Peek</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Dequeue</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span>
+
+<span class="pl-c">// 补充右侧路段</span>
+<span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">nextX</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">30f</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">AddSection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">while</span> <span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-s1">Count</span> <span class="pl-c1">&gt;</span> <span class="pl-c1">0</span> <span class="pl-c1">&amp;&amp;</span>
+           <span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Peek</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">.</span><span class="pl-s1">end</span> <span class="pl-c1">-</span> <span class="pl-s1">Distance</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">-</span><span class="pl-c1">16f</span><span class="pl-kos">)</span>
+    <span class="pl-kos">{</span>
+        <span class="pl-s1">RecycleSection</span><span class="pl-kos">(</span><span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Dequeue</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+<span class="pl-kos">}</span></pre></div>
+<p>最后修改 AddSection 中加入路段的部分：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">section</span><span class="pl-kos">.</span><span class="pl-s1">view</span><span class="pl-kos">.</span><span class="pl-en">SetActive</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-s1">sections</span><span class="pl-kos">.</span><span class="pl-en">Enqueue</span><span class="pl-kos">(</span><span class="pl-s1">section</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-s1">nextX</span> <span class="pl-c1">+=</span> <span class="pl-s1">length</span><span class="pl-kos">;</span>
+<span class="pl-s1">sectionNumber</span><span class="pl-c1">++</span><span class="pl-kos">;</span></pre></div>
+<p>这里有几个小知识点：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>数据结构</th>
+<th>放入</th>
+<th>取出</th>
+<th>只查看不取出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stack</td>
+<td>Push</td>
+<td>Pop</td>
+<td>Peek</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td>Enqueue</td>
+<td>Dequeue</td>
+<td>Peek</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>使用 Queue 后，<code class="notranslate">Dequeue()</code> 可以直接移除队首元素，不需要像 List 一样移动后续所有元素。</p>
+<p>对于这种不断从队首回收、从队尾添加的场景，Queue 更合适。</p>
+<hr>
+<h1>三、玩家角色控制：EndlessRunner</h1>
+<p>接下来开始 EndlessRunner 脚本的讲解，也就是我们的玩家角色控制器。</p>
+<p>依旧先大致讲解一下代码做了什么，心里有数，后面看代码就不会那么烧心。</p>
+<p>这个脚本主要负责控制无尽跑酷中的玩家角色行为，核心是通过状态机管理角色的不同动作。</p>
+<p>首先在 <code class="notranslate">Awake()</code> 中获取角色的 SpriteRenderer、主相机和战斗组件，并将角色放置到赛道规定的初始位置，同时初始化脚印特效管理对象。</p>
+<p>随后在 <code class="notranslate">Update()</code> 中每帧更新角色状态，首先判断是否处于移动锁定或游戏结束状态，然后根据赛道的加速比例计算角色的目标横向位置，通过 <code class="notranslate">MoveTowards()</code> 让角色逐渐向目标位置移动，并调用 EndlessTrack 的 <code class="notranslate">SurfaceAt()</code> 判断脚下是普通地面还是绳索，同时检测岩壁碰撞。</p>
+<p>如果角色被岩壁阻挡，就根据岩壁的逻辑位置和赛道当前滚动距离计算角色应该停留的位置，直到被挤出屏幕后判定失败。</p>
+<p>玩家输入主要通过 <code class="notranslate">Up()</code> 和 <code class="notranslate">Down()</code> 两个函数处理：</p>
+<ul>
+<li><code class="notranslate">Up()</code>：根据当前状态决定是跳跃、翻回绳索上方还是重新开始游戏。</li>
+<li><code class="notranslate">Down()</code>：根据当前状态决定是滑铲、空中下翻还是翻到绳索下方。</li>
+</ul>
+<p>角色跳跃时通过垂直速度和重力计算 Y 坐标，下翻时则通过 Lerp 插值在规定时间内下降到赛道表面，绳索上下翻转则通过修改角色状态和 SpriteRenderer 的 <code class="notranslate">flipY</code> 实现。</p>
+<p><code class="notranslate">Enter()</code> 是统一的状态切换入口，负责重置动作计时器，并在进入或退出滑铲时通知赛道开启或关闭加速。</p>
+<p>最后，<code class="notranslate">UpdateFrame()</code> 根据当前状态和计时器切换不同的精灵图片，<code class="notranslate">RunnerTrails</code> 则负责管理跑步时的脚印特效。</p>
+<p>整体来说，这段代码就是一个以状态机为核心的角色控制系统。<code class="notranslate">EndlessTrack</code> 负责提供赛道信息，<code class="notranslate">EndlessRunner</code> 根据赛道信息和玩家输入控制角色的移动、动作和动画。</p>
+<h2>1. 变量与状态机</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"提供脚底高度、路面种类、滚动速度和岩壁位置。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-s1">EndlessTrack</span> <span class="pl-s1">track</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"跑步循环帧。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">Sprite</span><span class="pl-kos">[</span><span class="pl-kos">]</span> <span class="pl-s1">runFrames</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"首跳帧。末帧也是越过最高点后的下落姿势。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">Sprite</span><span class="pl-kos">[</span><span class="pl-kos">]</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"三张翻滚关键帧，依次收身、倒转、回正。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">Sprite</span><span class="pl-kos">[</span><span class="pl-kos">]</span> <span class="pl-s1">rollFrames</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"地面滑铲期间保持的贴地姿势。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-s1">Sprite</span> <span class="pl-s1">slideFrame</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"起跳的世界单位/秒。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">jumpSpeed</span> <span class="pl-c1">=</span> <span class="pl-c1">9.6f</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"每秒增加的向下速度。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">gravity</span> <span class="pl-c1">=</span> <span class="pl-c1">30f</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">[</span><span class="pl-c1">SerializeField</span><span class="pl-kos">,</span> <span class="pl-c1">Tooltip</span><span class="pl-kos">(</span><span class="pl-s">"一次滑铲的最长秒数。"</span><span class="pl-kos">)</span><span class="pl-kos">]</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">slideSeconds</span> <span class="pl-c1">=</span> <span class="pl-c1">0.65f</span><span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">float</span> <span class="pl-s1">DiveSeconds</span> <span class="pl-c1">=</span> <span class="pl-c1">0.16f</span><span class="pl-kos">;</span>
+<span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">float</span> <span class="pl-s1">RollSeconds</span> <span class="pl-c1">=</span> <span class="pl-c1">0.2f</span><span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">float</span> <span class="pl-s1">FrontReach</span> <span class="pl-c1">=</span> <span class="pl-c1">0.8f</span><span class="pl-kos">;</span>
+
+private Motion state<span class="pl-kos">;</span>
+
+private SpriteRenderer figure<span class="pl-kos">;</span>
+private Camera view<span class="pl-kos">;</span>
+private WaterBattle battle<span class="pl-kos">;</span>
+private RunnerTrails trails<span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">velocityY</span><span class="pl-kos">,</span> elapsed<span class="pl-kos">,</span> wallDistance<span class="pl-kos">,</span> diveStartY<span class="pl-kos">;</span>
+<span class="pl-k">private</span> <span class="pl-smi">float</span> <span class="pl-s1">rollAge</span> <span class="pl-c1">=</span> RollSeconds<span class="pl-kos">;</span>
+
+<span class="pl-k">private</span> <span class="pl-smi">int</span> <span class="pl-s1">jumpCount</span><span class="pl-kos">;</span>
+<span class="pl-k">private</span> <span class="pl-smi">bool</span> <span class="pl-s1">restarting</span><span class="pl-kos">;</span>
+<span class="pl-k">private</span> <span class="pl-smi">bool</span> <span class="pl-s1">ninjutsuMovementLocked</span><span class="pl-kos">;</span></pre></div>
+<p>这里的 <code class="notranslate">Motion</code> 是一个枚举，定义了玩家可能处于的不同状态：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-k">enum</span> <span class="pl-smi">Motion</span>
+<span class="pl-kos">{</span>
+    <span class="pl-c1">Run</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Slide</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Air</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Dive</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Under</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Pinned</span><span class="pl-kos">,</span>
+    <span class="pl-c1">Failed</span>
+<span class="pl-kos">}</span></pre></div>
+<p>这些状态分别代表正常跑步、滑铲、跳跃、空中下翻、绳索下方倒挂、被岩壁卡住以及失败。</p>
+<p>再看几个比较有意思的属性：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsUnderRope</span> <span class="pl-c1">=&gt;</span>
+    state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Under <span class="pl-c1">||</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Pinned<span class="pl-kos">;</span>
+
+<span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsAirborne</span> <span class="pl-c1">=&gt;</span>
+    state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Air <span class="pl-c1">||</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Dive<span class="pl-kos">;</span>
+
+<span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsSliding</span> <span class="pl-c1">=&gt;</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Slide<span class="pl-kos">;</span>
+
+<span class="pl-k">public</span> <span class="pl-smi">int</span> <span class="pl-s1">JumpCount</span> <span class="pl-c1">=&gt;</span> jumpCount<span class="pl-kos">;</span></pre></div>
+<p>这种 <code class="notranslate">=&gt;</code> 写法叫表达式主体成员。</p>
+<p>可以理解为没有单独定义一个用于存储 <code class="notranslate">IsUnderRope</code> 结果的字段，而是定义了一个只读属性，每次访问时都会执行右侧表达式，并返回计算结果。</p>
+<p>例如：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">public</span> <span class="pl-smi">bool</span> <span class="pl-s1">IsSliding</span> <span class="pl-c1">=&gt;</span> state <span class="pl-c1">==</span> Motion<span class="pl-kos">.</span>Slide<span class="pl-kos">;</span></pre></div>
+<p>当外部调用：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">runner</span><span class="pl-kos">.</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-c">// ...</span>
+<span class="pl-kos">}</span></pre></div>
+<p>实际上就是实时判断当前 <code class="notranslate">state</code> 是否等于 <code class="notranslate">Motion.Slide</code>。</p>
+<p>这样就不需要额外维护一个 <code class="notranslate">isSliding</code> 布尔变量，也避免了状态和布尔变量不一致的问题。</p>
+<h2>2. SetNinjutsuMovementLocked：移动锁定</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">SetNinjutsuMovementLocked</span><span class="pl-kos">(</span><span class="pl-smi">bool</span> <span class="pl-s1">locked</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">ninjutsuMovementLocked</span> <span class="pl-c1">==</span> <span class="pl-s1">locked</span><span class="pl-kos">)</span>
+        <span class="pl-k">return</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">ninjutsuMovementLocked</span> <span class="pl-c1">=</span> <span class="pl-s1">locked</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">locked</span><span class="pl-kos">)</span>
+        <span class="pl-k">return</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+        <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Pinned</span><span class="pl-kos">)</span>
+        <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Under</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">trails</span> <span class="pl-c1">!=</span> <span class="pl-c1">null</span><span class="pl-kos">)</span>
+        <span class="pl-s1">trails</span><span class="pl-kos">.</span><span class="pl-en">ClearFootprints</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p>这是设置角色移动锁定状态的函数。</p>
+<p>例如玩家正在滑铲时，触发大招最后的终结动画，这个期间玩家不能继续移动。</p>
+<p>或者角色原本被墙体卡住，现在进入特殊动画，也需要解除卡住状态。</p>
+<p>因此，这里在开启锁定时会先清理当前动作：</p>
+<ul>
+<li>如果正在滑铲，就退出滑铲，关闭赛道加速。</li>
+<li>如果被岩壁卡住，就恢复到绳索下方状态。</li>
+<li>清除之前留下的脚印。</li>
+</ul>
+<p>之后 Update 会检查 <code class="notranslate">ninjutsuMovementLocked</code>，如果为 true，就直接结束本帧更新。</p>
+<p>这样就可以保证特殊动画播放期间，普通角色控制逻辑不会干扰它。</p>
+<h2>3. Enter：统一状态切换函数</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Enter</span><span class="pl-kos">(</span><span class="pl-smi">Motion</span> <span class="pl-s1">next</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+        <span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-en">SetSlideBoost</span><span class="pl-kos">(</span><span class="pl-c1">false</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">state</span> <span class="pl-c1">=</span> <span class="pl-s1">next</span><span class="pl-kos">;</span>
+    <span class="pl-s1">elapsed</span> <span class="pl-c1">=</span> <span class="pl-c1">0f</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+        <span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-en">SetSlideBoost</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p><code class="notranslate">Enter()</code> 是状态切换函数。</p>
+<p>假设从滑铲切换到其他状态：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+    <span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-en">SetSlideBoost</span><span class="pl-kos">(</span><span class="pl-c1">false</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>因为当前状态是 Slide，所以条件成立，先关闭赛道加速。</p>
+<p>然后：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">state</span> <span class="pl-c1">=</span> <span class="pl-s1">next</span><span class="pl-kos">;</span></pre></div>
+<p>将当前状态切换成传入的目标状态。</p>
+<p>接着：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">elapsed</span> <span class="pl-c1">=</span> <span class="pl-c1">0f</span><span class="pl-kos">;</span></pre></div>
+<p>重置动作计时器，让新状态从零开始计时。</p>
+<p>最后再判断一次：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+    <span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-en">SetSlideBoost</span><span class="pl-kos">(</span><span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>注意，这里判断的是切换后的新状态。</p>
+<p>如果新状态是 Slide，就开启赛道加速；否则不做任何操作。</p>
+<p>这样无论通过哪条路径进入或者退出滑铲，都能正确管理赛道加速状态。</p>
+<h2>4. Turn：绳索上下翻转</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">Turn</span><span class="pl-kos">(</span><span class="pl-smi">bool</span> <span class="pl-s1">below</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">below</span> <span class="pl-c1">?</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Under</span> <span class="pl-c1">:</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">rollAge</span> <span class="pl-c1">=</span> <span class="pl-c1">0f</span><span class="pl-kos">;</span>
+    <span class="pl-s1">velocityY</span> <span class="pl-c1">=</span> <span class="pl-c1">0f</span><span class="pl-kos">;</span>
+    <span class="pl-s1">jumpCount</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">Vector3</span><span class="pl-kos">(</span>
+        <span class="pl-s1">transform</span><span class="pl-kos">.</span><span class="pl-s1">position</span><span class="pl-kos">.</span><span class="pl-s1">x</span><span class="pl-kos">,</span>
+        <span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-s1">SurfaceY</span> <span class="pl-c1">-</span> <span class="pl-kos">(</span><span class="pl-s1">below</span> <span class="pl-c1">?</span> <span class="pl-c1">0.06f</span> <span class="pl-c1">:</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span><span class="pl-kos">,</span>
+        <span class="pl-c1">0f</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-s1">trails</span><span class="pl-kos">.</span><span class="pl-en">TurnFootprints</span><span class="pl-kos">(</span><span class="pl-s1">below</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p><code class="notranslate">Turn(bool below)</code> 是切换绳索上下侧的函数。</p>
+<p>传入 true，就进入绳索下方；传入 false，就回到绳索上方。</p>
+<p>这里使用了三元运算符：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">below</span> <span class="pl-c1">?</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Under</span> <span class="pl-c1">:</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span></pre></div>
+<p>相当于：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">below</span><span class="pl-kos">)</span>
+    <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Under</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-k">else</span>
+    <span class="pl-s1">Enter</span><span class="pl-kos">(</span><span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Run</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>然后重置翻滚动画计时器、垂直速度和跳跃次数。</p>
+<p>接着修改角色 Y 坐标：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">track</span><span class="pl-kos">.</span><span class="pl-s1">SurfaceY</span> <span class="pl-c1">-</span> <span class="pl-kos">(</span><span class="pl-s1">below</span> <span class="pl-c1">?</span> <span class="pl-c1">0.06f</span> <span class="pl-c1">:</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span></pre></div>
+<p>如果在绳索下方，就比赛道表面低 0.06 个单位；否则就保持在赛道表面。</p>
+<p>最后通知脚印系统切换接触面。</p>
+<p>另外，角色真正倒挂的视觉效果是通过 SpriteRenderer 的 <code class="notranslate">flipY</code> 实现的，而不是直接旋转整个角色物体。</p>
+<h2>5. UpdateFrame：动画帧切换</h2>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">UpdateFrame</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">rollAge</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">RollSeconds</span> <span class="pl-c1">-</span> <span class="pl-c1">0.000001f</span><span class="pl-kos">)</span>
+        <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">rollFrames</span><span class="pl-kos">[</span>
+            <span class="pl-s1">Mathf</span><span class="pl-kos">.</span><span class="pl-en">Min</span><span class="pl-kos">(</span><span class="pl-c1">2</span><span class="pl-kos">,</span> <span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">rollAge</span> <span class="pl-c1">*</span> <span class="pl-c1">15f</span> <span class="pl-c1">+</span> <span class="pl-c1">0.000001f</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Pinned</span><span class="pl-kos">)</span>
+        <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">runFrames</span><span class="pl-kos">[</span><span class="pl-c1">0</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">IsSliding</span><span class="pl-kos">)</span>
+        <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">slideFrame</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Air</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">velocityY</span> <span class="pl-c1">&lt;=</span> <span class="pl-c1">0f</span><span class="pl-kos">)</span>
+        <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">[</span><span class="pl-s1">jumpFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span> <span class="pl-c1">-</span> <span class="pl-c1">1</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">state</span> <span class="pl-c1">==</span> <span class="pl-s1">Motion</span><span class="pl-kos">.</span><span class="pl-s1">Air</span><span class="pl-kos">)</span>
+        <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">[</span>
+            <span class="pl-s1">Mathf</span><span class="pl-kos">.</span><span class="pl-en">Min</span><span class="pl-kos">(</span><span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">elapsed</span> <span class="pl-c1">*</span> <span class="pl-c1">12f</span><span class="pl-kos">)</span><span class="pl-kos">,</span> <span class="pl-s1">jumpFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span> <span class="pl-c1">-</span> <span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
+
+    <span class="pl-k">else</span>
+        <span class="pl-s1">figure</span><span class="pl-kos">.</span><span class="pl-s1">sprite</span> <span class="pl-c1">=</span> <span class="pl-s1">runFrames</span><span class="pl-kos">[</span>
+            <span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">elapsed</span> <span class="pl-c1">*</span> <span class="pl-c1">15f</span><span class="pl-kos">)</span> <span class="pl-c1">%</span> <span class="pl-s1">runFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span><span class="pl-kos">]</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<p><code class="notranslate">UpdateFrame()</code> 专门根据当前状态和计时变量，选择对应的 Sprite 贴图，是这套角色的动画切换函数。</p>
+<p>乍一看比较复杂，其实原理很简单。</p>
+<p>这里玩家并没有专门使用 Animator 动画状态机来管理跑步、跳跃、翻滚等动画，而是直接通过代码驱动，将动画帧存在数组里，然后每帧计算数组下标，播放对应帧动画。</p>
+<p>例如：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">Mathf</span><span class="pl-kos">.</span><span class="pl-en">Min</span><span class="pl-kos">(</span><span class="pl-c1">2</span><span class="pl-kos">,</span> <span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">rollAge</span> <span class="pl-c1">*</span> <span class="pl-c1">15f</span> <span class="pl-c1">+</span> <span class="pl-c1">0.000001f</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos"></span></pre></div>
+<p>这里的 <code class="notranslate">Mathf.Min()</code> 是取两个数中的较小值，相当于限制最大值。</p>
+<p>因为数组里只有三张动画图片，下标分别是 0、1、2，所以最大不能超过 2，否则就会数组越界。</p>
+<p><code class="notranslate">rollAge</code> 是翻滚动画已经播放的时间，乘以 15，就可以计算当前应该播放到第几帧。</p>
+<p>例如：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>播放时间</th>
+<th>计算结果</th>
+<th>动画下标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0～0.0667 秒</td>
+<td>0</td>
+<td>第 0 帧</td>
+</tr>
+<tr>
+<td>0.0667～0.1333 秒</td>
+<td>1</td>
+<td>第 1 帧</td>
+</tr>
+<tr>
+<td>0.1333～0.2 秒</td>
+<td>2</td>
+<td>第 2 帧</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>这里的 <code class="notranslate">RollSeconds</code> 应设置为：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">private</span> <span class="pl-k">const</span> <span class="pl-smi">float</span> <span class="pl-s1">RollSeconds</span> <span class="pl-c1">=</span> <span class="pl-c1">0.2f</span><span class="pl-kos">;</span></pre></div>
+<p>因为三张图片按照每秒 15 帧播放，总播放时间就是：</p>
+<pre lang="text" class="notranslate"><code class="notranslate">3 / 15 = 0.2 秒
+</code></pre>
+<p>原代码中如果使用 <code class="notranslate">0.15f</code>，就会导致翻滚动画尚未完整播放完三帧，就结束动画计时，因此需要统一修改。</p>
+<p>再看最后的跑步动画：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-s1">runFrames</span><span class="pl-kos">[</span><span class="pl-kos">(</span><span class="pl-smi">int</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">elapsed</span> <span class="pl-c1">*</span> <span class="pl-c1">15f</span><span class="pl-kos">)</span> <span class="pl-c1">%</span> <span class="pl-s1">runFrames</span><span class="pl-kos">.</span><span class="pl-s1">Length</span><span class="pl-kos">]</span></pre></div>
+<p>这里才是真正使用 <code class="notranslate">%</code> 取余。</p>
+<p><code class="notranslate">elapsed * 15f</code> 计算已经经过了多少帧，然后对数组长度取余，使下标始终处于合法范围内，从而实现循环播放。</p>
+<p>跳跃动画也是类似的原理，只不过使用 12 FPS，并且通过 <code class="notranslate">Mathf.Min()</code> 限制最大下标，防止超过数组长度。</p>
+<hr></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
