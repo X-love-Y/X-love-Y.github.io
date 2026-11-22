@@ -310,3 +310,17 @@ Enter是状态切换函数，假设从滑铲切换别的状态，if (IsSliding) 
         }
 ```
 Turn(bool below) 是切换绳索上下侧的函数：在绳索上面 ↔ 绳索下面翻转，同时重置一堆运动参数、切换状态、改位置、通知脚印轨迹切换。
+```csharp
+        private void UpdateFrame()
+        {
+            // 15 帧/秒播放三个姿势，总计 0.2 秒。到时交回当前跑步或跳跃姿势。
+            if (rollAge < RollSeconds - 0.000001f)
+                figure.sprite = rollFrames[Mathf.Min(2, (int)(rollAge * 15f + 0.000001f))];
+            else if (state == Motion.Pinned) figure.sprite = runFrames[0];
+            else if (IsSliding) figure.sprite = slideFrame;
+            else if (state == Motion.Air && velocityY <= 0f) figure.sprite = jumpFrames[jumpFrames.Length - 1];
+            else if (state == Motion.Air) figure.sprite = jumpFrames[Mathf.Min((int)(elapsed * 12f), jumpFrames.Length - 1)];
+            else figure.sprite = runFrames[(int)(elapsed * 15f) % runFrames.Length];
+        }
+```
+UpdateFrame()`专门根据当前状态 + 计时变量，选对应的 Sprite 贴图，是这套角色的动画切换函数。这个函数很重要，乍一看很复杂，其实很简单，这里玩家并没有专门制作跑步动画跳跃动画等，用动画状态机来管理，而是直接代码驱动，将动画帧存在数组里，然后每帧计算出该数组的下标播放对应帧动画，Mathf.Min(2, (int)(rollAge * 15f + 0.000001f))以这个式子为例，Min括号里的取最小值，即封顶，这里些2，是因为数组里只有三个动画帧，下标0，1，2，超过2就越界了，15帧每秒，播放3帧正好0.2秒，rollAge是已经播放了多久的动画，播放的时间乘上每秒播放的帧数，就是这个时间播放了多少帧，对2取余，就是该播放到那一帧（因为数组里只有三帧）。后面的空中上升播放跳跃动画和循环播放跑步动画也是这个原理。
